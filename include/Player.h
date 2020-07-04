@@ -11,6 +11,7 @@ private:
     float velocity;
     float angle;
     std::vector<sf::Vector2f> line;
+    bool isCollision();
 public:
     Player();
     void drawLine(sf::RenderWindow* window);

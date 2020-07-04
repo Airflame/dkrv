@@ -26,9 +26,11 @@ void Player::drawHead(sf::RenderWindow *window) {
 }
 
 void Player::move(float dt) {
-    position.x += velocity*std::cos(angle)*dt;
-    position.y += velocity*std::sin(angle)*dt;
-    line.emplace_back(position);
+    if (!isCollision()) {
+        position.x += velocity * std::cos(angle) * dt;
+        position.y += velocity * std::sin(angle) * dt;
+        line.emplace_back(position);
+    }
 }
 
 void Player::turnLeft(float dt) {
@@ -41,6 +43,17 @@ void Player::turnRight(float dt) {
     angle += 3*dt;
     if (angle > 2*M_PI)
         angle -= 2*M_PI;
+}
+
+bool Player::isCollision() {
+    if (line.size() < 10)
+        return false;
+    for (int i = 0; i < line.size() - 10; i++) {
+        sf::Vector2f point = line[i];
+        if (std::sqrt((point.x - position.x)*(point.x - position.x)+(point.y - position.y)*(point.y - position.y)) < 10)
+            return true;
+    }
+    return false;
 }
 
 
