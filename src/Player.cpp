@@ -3,15 +3,21 @@
 #include <cmath>
 
 Player::Player() {
-    position = sf::Vector2f(100, 100);
+    position = sf::Vector2f(rand() % 800, rand() % 800);
+    line.emplace_back(position);
     velocity = 100;
     angle = 0;
-    line.emplace_back(position);
+    pointShape = sf::CircleShape(5);
+    color = sf::Color::Blue;
+    pointShape.setFillColor(color);
+    pointShape.setOrigin(5, 5);
+}
+
+void Player::setEnemy(Player* arg) {
+    enemy = arg;
 }
 
 void Player::drawLine(sf::RenderWindow *window) {
-    sf::CircleShape pointShape(5);
-    pointShape.setFillColor(sf::Color::Yellow);
     for (sf::Vector2f point : line) {
         pointShape.setPosition(point);
         window->draw(pointShape);
@@ -19,8 +25,6 @@ void Player::drawLine(sf::RenderWindow *window) {
 }
 
 void Player::drawHead(sf::RenderWindow *window) {
-    sf::CircleShape pointShape(5);
-    pointShape.setFillColor(sf::Color::Yellow);
     pointShape.setPosition(position);
     window->draw(pointShape);
 }
@@ -53,7 +57,31 @@ bool Player::isCollision() {
         if (std::sqrt((point.x - position.x)*(point.x - position.x)+(point.y - position.y)*(point.y - position.y)) < 10)
             return true;
     }
+    for (auto point : enemy->line) {
+        if (std::sqrt((point.x - position.x)*(point.x - position.x)+(point.y - position.y)*(point.y - position.y)) < 10)
+            return true;
+    }
+    //return position.x < 5 or position.x > 795 or position.y < 5 or position.y > 795;
     return false;
+}
+
+void Player::addPosition(sf::Vector2f arg) {
+    position = arg;
+    line.emplace_back(position);
+}
+
+void Player::setPosition(sf::Vector2f arg) {
+    line.clear();
+    addPosition(arg);
+}
+
+sf::Vector2f Player::getPosition() {
+    return position;
+}
+
+void Player::setColor(sf::Color arg) {
+    color = arg;
+    pointShape.setFillColor(color);
 }
 
 
