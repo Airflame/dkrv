@@ -8,12 +8,13 @@
 class Game {
 private:
     sf::TcpSocket socket;
+    bool isListening;
     void listen();
     void connect();
     void netLoop();
 public:
     Game();
-    Player enemy;
+    Player player, enemy;
     void run(bool isServer);
 };
 

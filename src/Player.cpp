@@ -11,6 +11,12 @@ Player::Player() {
     color = sf::Color::Blue;
     pointShape.setFillColor(color);
     pointShape.setOrigin(5, 5);
+    isDrawing = false;
+}
+
+
+void Player::clear() {
+    line.clear();
 }
 
 void Player::setEnemy(Player* arg) {
@@ -18,22 +24,23 @@ void Player::setEnemy(Player* arg) {
 }
 
 void Player::drawLine(sf::RenderWindow *window) {
-    for (sf::Vector2f point : line) {
-        pointShape.setPosition(point);
+    if (isDrawing) {
+        for (sf::Vector2f point : line) {
+            pointShape.setPosition(point);
+            window->draw(pointShape);
+        }
+    } else {
+        pointShape.setPosition(position);
         window->draw(pointShape);
     }
-}
-
-void Player::drawHead(sf::RenderWindow *window) {
-    pointShape.setPosition(position);
-    window->draw(pointShape);
 }
 
 void Player::move(float dt) {
     if (!isCollision()) {
         position.x += velocity * std::cos(angle) * dt;
         position.y += velocity * std::sin(angle) * dt;
-        line.emplace_back(position);
+        if (isDrawing)
+            line.emplace_back(position);
     }
 }
 
@@ -61,18 +68,16 @@ bool Player::isCollision() {
         if (std::sqrt((point.x - position.x)*(point.x - position.x)+(point.y - position.y)*(point.y - position.y)) < 10)
             return true;
     }
-    //return position.x < 5 or position.x > 795 or position.y < 5 or position.y > 795;
-    return false;
+    if (isDrawing)
+        return position.x < 5 or position.x > 795 or position.y < 5 or position.y > 795;
+    else
+        return false;
 }
 
 void Player::addPosition(sf::Vector2f arg) {
     position = arg;
-    line.emplace_back(position);
-}
-
-void Player::setPosition(sf::Vector2f arg) {
-    line.clear();
-    addPosition(arg);
+    if (isDrawing)
+        line.emplace_back(position);
 }
 
 sf::Vector2f Player::getPosition() {
@@ -82,6 +87,10 @@ sf::Vector2f Player::getPosition() {
 void Player::setColor(sf::Color arg) {
     color = arg;
     pointShape.setFillColor(color);
+}
+
+void Player::enableDrawing() {
+    isDrawing = true;
 }
 
 

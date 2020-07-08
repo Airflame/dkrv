@@ -1,6 +1,10 @@
 #include "../include/Game.h"
 
-Game::Game() = default;
+Game::Game() {
+    isListening = true;
+    player.setEnemy(&enemy);
+    enemy.setColor(sf::Color::Red);
+}
 
 void Game::listen() {
     std::cout << "Waiting for connection" << std::endl;
@@ -20,7 +24,7 @@ void Game::connect() {
 }
 
 void Game::netLoop() {
-    while (1) {
+    while (isListening) {
         float x, y;
         sf::Packet packet;
         socket.receive(packet);
@@ -33,9 +37,7 @@ void Game::run(bool isServer) {
     srand(time(nullptr));
     sf::Clock cl;
     float dt = 0;
-    Player player;
-    player.setEnemy(&enemy);
-    enemy.setColor(sf::Color::Red);
+    float startInterval = 5;
 
     if (isServer)
         listen();
@@ -49,16 +51,28 @@ void Game::run(bool isServer) {
 
     sf::Thread thread(&Game::netLoop, this);
     thread.launch();
-
     sf::Packet packet;
+
+    player.clear();
+    enemy.clear();
 
     while (window.isOpen())
     {
+        if (startInterval > 0)
+            startInterval -= dt;
+        else {
+            player.enableDrawing();
+            enemy.enableDrawing();
+        }
         sf::Event event;
         while (window.pollEvent(event))
         {
-            if (event.type == sf::Event::Closed)
+            if (event.type == sf::Event::Closed) {
+                isListening = false;
+                thread.terminate();
                 window.close();
+                return;
+            }
         }
 
         if (window.hasFocus()) {
@@ -79,5 +93,4 @@ void Game::run(bool isServer) {
         window.display();
         dt = cl.restart().asSeconds();
     }
-    //thread.terminate();
 }
