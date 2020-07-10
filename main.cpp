@@ -2,10 +2,10 @@
 #include "include/GameClient.h"
 
 int main() {
-    bool isServer;
-    std::cout << "Run server[1] or client[0]?" << std::endl;
+    std::string isServer;
+    std::cout << "Run [s]erver or [c]lient?" << std::endl;
     std::cin >> isServer;
-    if (isServer) {
+    if (isServer == "s") {
         GameServer gameServer;
         gameServer.run();
     } else {

@@ -1,21 +1,22 @@
 #include "../include/GameServer.h"
 
 GameServer::GameServer() {
-    colors.push_back(sf::Color::Red);
-    colors.push_back(sf::Color::Yellow);
-    colors.push_back(sf::Color::Green);
-    colors.push_back(sf::Color::Blue);
+    colors.emplace_back(214, 48, 49);
+    colors.emplace_back(253, 203, 110);
+    colors.emplace_back(39, 174, 96);
+    colors.emplace_back(9, 132, 227);
+    colors.emplace_back(232, 67, 147);
     listening = true;
     running = true;
 }
 
 void GameServer::listen() {
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-    int consoleColors[4] = {12, 14, 10, 9};
+    int consoleColors[5] = {12, 14, 10, 9, 13};
     int clientId = 0, maxClients = 0, namesSet = 0;
     bool waiting = true;
-    while (maxClients < 2 or maxClients > 4) {
-        std::cout << "Number of players [2-4]:" << std::endl;
+    while (maxClients < 2 or maxClients > 5) {
+        std::cout << "Number of players [2-5]:" << std::endl;
         std::cin >> maxClients;
     }
     sf::TcpListener listener;
@@ -88,7 +89,7 @@ void GameServer::netLoop() {
 
 void GameServer::run() {
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-    int consoleColors[4] = {12, 14, 10, 9};
+    int consoleColors[5] = {12, 14, 10, 9, 13};
 
     listen();
     std::cout << std::endl << "New game" << std::endl;

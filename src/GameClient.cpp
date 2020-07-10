@@ -2,10 +2,12 @@
 
 GameClient::GameClient() {
     pointShape.setRadius(5);
-    colors.push_back(sf::Color::Red);
-    colors.push_back(sf::Color::Yellow);
-    colors.push_back(sf::Color::Green);
-    colors.push_back(sf::Color::Blue);
+    pointShape.setOrigin(5, 5);
+    colors.emplace_back(214, 48, 49);
+    colors.emplace_back(253, 203, 110);
+    colors.emplace_back(39, 174, 96);
+    colors.emplace_back(9, 132, 227);
+    colors.emplace_back(232, 67, 147);
     for (int i = 0; i < colors.size(); i++) {
         lines.emplace_back();
         positions.emplace_back(sf::Vector2f(-10, -10));
@@ -113,7 +115,7 @@ void GameClient::run() {
             }
         }
 
-        window->clear();
+        window->clear(sf::Color(30, 39, 46));
         draw();
         window->display();
         dt = cl.restart().asSeconds();
