@@ -2,12 +2,13 @@
 #define DKRV_PLAYER_H
 #include <cmath>
 #include <vector>
+#include <iostream>
 #include <SFML/Graphics.hpp>
 
 
 class Player {
 private:
-    Player* enemy;
+    std::vector<Player>* players;
     sf::Vector2f position;
     float velocity;
     float angle;
@@ -19,7 +20,7 @@ private:
 public:
     Player();
     void clear();
-    void setEnemy(Player* arg);
+    void setEnemies(std::vector<Player>* arg);
     void drawLine(sf::RenderWindow* window);
     void move(float dt);
     void turnLeft(float dt);

@@ -14,13 +14,12 @@ Player::Player() {
     isDrawing = false;
 }
 
-
 void Player::clear() {
     line.clear();
 }
 
-void Player::setEnemy(Player* arg) {
-    enemy = arg;
+void Player::setEnemies(std::vector<Player>* arg) {
+    players = arg;
 }
 
 void Player::drawLine(sf::RenderWindow *window) {
@@ -57,16 +56,22 @@ void Player::turnRight(float dt) {
 }
 
 bool Player::isCollision() {
-    if (line.size() < 10)
+    if (line.size() < 50)
         return false;
-    for (int i = 0; i < line.size() - 10; i++) {
+    for (int i = 0; i < line.size() - 50; i++) {
         sf::Vector2f point = line[i];
         if (std::sqrt((point.x - position.x)*(point.x - position.x)+(point.y - position.y)*(point.y - position.y)) < 10)
             return true;
     }
-    for (auto point : enemy->line) {
-        if (std::sqrt((point.x - position.x)*(point.x - position.x)+(point.y - position.y)*(point.y - position.y)) < 10)
-            return true;
+    for (const auto& enemy : *players) {
+        for (auto point : enemy.line) {
+            if (enemy.color == this->color)
+                continue;
+            if (std::sqrt(
+                    (point.x - position.x) * (point.x - position.x) + (point.y - position.y) * (point.y - position.y)) <
+                10)
+                return true;
+        }
     }
     if (isDrawing)
         return position.x < 5 or position.x > 795 or position.y < 5 or position.y > 795;
