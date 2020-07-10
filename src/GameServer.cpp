@@ -112,13 +112,26 @@ void GameServer::run() {
             refreshInterval -= dt;
         else {
             refreshInterval = 1.0f / FPS;
+            int blocked = 0;
             for (int i = 0; i < players.size(); i++) {
                 players[i].move(refreshInterval);
                 packet.clear();
                 packet << i << players[i].getPosition().x << players[i].getPosition().y;
                 for (auto client : clients)
                     client->send(packet);
+                if (players[i].collided())
+                    blocked++;
             }
+            if (blocked == players.size()) {
+                for (int i = 0; i < players.size(); i++) {
+                    packet.clear();
+                    packet << -2;
+                    for (auto client : clients)
+                        client->send(packet);
+                    players[i].reset();
+                }
+            }
+
         }
 
         dt = cl.restart().asSeconds();

@@ -12,23 +12,22 @@ private:
     sf::Vector2f position;
     float velocity;
     float angle;
-    bool isDrawing;
+    bool isDrawing, isBlocked;
     std::vector<sf::Vector2f> line;
-    sf::CircleShape pointShape;
     sf::Color color;
     bool isCollision();
 public:
     Player();
+    void reset();
     void clear();
     void setEnemies(std::vector<Player>* arg);
-    void drawLine(sf::RenderWindow* window);
     void move(float dt);
     void turnLeft(float dt);
     void turnRight(float dt);
-    void addPosition(sf::Vector2f arg);
     sf::Vector2f getPosition();
     void setColor(sf::Color arg);
     void enableDrawing();
+    bool collided();
 };
 
 

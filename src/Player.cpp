@@ -3,15 +3,18 @@
 #include <cmath>
 
 Player::Player() {
-    position = sf::Vector2f(rand() % 800, rand() % 800);
-    line.emplace_back(position);
     velocity = 100;
-    angle = 0;
-    pointShape = sf::CircleShape(5);
-    color = sf::Color::Blue;
-    pointShape.setFillColor(color);
-    pointShape.setOrigin(5, 5);
+    color = sf::Color::White;
     isDrawing = false;
+    reset();
+}
+
+void Player::reset() {
+    clear();
+    angle = 0;
+    isBlocked = false;
+    position = sf::Vector2f(100, rand() % 600 + 100);
+    line.emplace_back(position);
 }
 
 void Player::clear() {
@@ -22,20 +25,10 @@ void Player::setEnemies(std::vector<Player>* arg) {
     players = arg;
 }
 
-void Player::drawLine(sf::RenderWindow *window) {
-    if (isDrawing) {
-        for (sf::Vector2f point : line) {
-            pointShape.setPosition(point);
-            window->draw(pointShape);
-        }
-    } else {
-        pointShape.setPosition(position);
-        window->draw(pointShape);
-    }
-}
-
 void Player::move(float dt) {
-    if (!isCollision()) {
+    if (!isBlocked)
+        isBlocked = isCollision();
+    if (!isBlocked) {
         position.x += velocity * std::cos(angle) * dt;
         position.y += velocity * std::sin(angle) * dt;
         if (isDrawing)
@@ -79,23 +72,18 @@ bool Player::isCollision() {
         return false;
 }
 
-void Player::addPosition(sf::Vector2f arg) {
-    position = arg;
-    if (isDrawing)
-        line.emplace_back(position);
-}
-
 sf::Vector2f Player::getPosition() {
     return position;
 }
 
 void Player::setColor(sf::Color arg) {
     color = arg;
-    pointShape.setFillColor(color);
 }
 
 void Player::enableDrawing() {
     isDrawing = true;
 }
 
-
+bool Player::collided() {
+    return isBlocked;
+}
