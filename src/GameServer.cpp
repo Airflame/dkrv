@@ -156,13 +156,13 @@ void GameServer::run() {
             }
             if (roundInterval < 0) {
                 for (int i = 0; i < players.size(); i++) {
-                    packet.clear();
-                    packet << -2;
-                    for (auto client : clients)
-                        client->send(packet);
                     players[i].reset();
                     players[i].disableDrawing();
                 }
+                packet.clear();
+                packet << -2;
+                for (auto client : clients)
+                    client->send(packet);
                 won = false;
                 startInterval = START_INTERVAL;
                 roundInterval = ROUND_INTERVAL;
