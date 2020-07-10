@@ -5,14 +5,14 @@
 Player::Player() {
     velocity = 100;
     color = sf::Color::White;
-    isDrawing = false;
+    drawing = false;
     reset();
 }
 
 void Player::reset() {
     clear();
     angle = 0;
-    isBlocked = false;
+    blocked = false;
     position = sf::Vector2f(100, rand() % 600 + 100);
     line.emplace_back(position);
 }
@@ -26,12 +26,12 @@ void Player::setEnemies(std::vector<Player>* arg) {
 }
 
 void Player::move(float dt) {
-    if (!isBlocked)
-        isBlocked = isCollision();
-    if (!isBlocked) {
+    if (!blocked)
+        blocked = isCollision() and drawing;
+    if (!blocked) {
         position.x += velocity * std::cos(angle) * dt;
         position.y += velocity * std::sin(angle) * dt;
-        if (isDrawing)
+        if (drawing)
             line.emplace_back(position);
     }
 }
@@ -49,9 +49,9 @@ void Player::turnRight(float dt) {
 }
 
 bool Player::isCollision() {
-    if (line.size() < 50)
+    if (line.size() < 10)
         return false;
-    for (int i = 0; i < line.size() - 50; i++) {
+    for (int i = 0; i < line.size() - 10; i++) {
         sf::Vector2f point = line[i];
         if (std::sqrt((point.x - position.x)*(point.x - position.x)+(point.y - position.y)*(point.y - position.y)) < 10)
             return true;
@@ -66,7 +66,7 @@ bool Player::isCollision() {
                 return true;
         }
     }
-    if (isDrawing)
+    if (drawing)
         return position.x < 5 or position.x > 795 or position.y < 5 or position.y > 795;
     else
         return false;
@@ -81,9 +81,17 @@ void Player::setColor(sf::Color arg) {
 }
 
 void Player::enableDrawing() {
-    isDrawing = true;
+    drawing = true;
 }
 
-bool Player::collided() {
-    return isBlocked;
+void Player::disableDrawing() {
+    drawing = false;
+}
+
+bool Player::isDrawing() {
+    return drawing;
+}
+
+bool Player::isBlocked() {
+    return blocked;
 }

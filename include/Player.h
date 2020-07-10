@@ -12,7 +12,7 @@ private:
     sf::Vector2f position;
     float velocity;
     float angle;
-    bool isDrawing, isBlocked;
+    bool drawing, blocked;
     std::vector<sf::Vector2f> line;
     sf::Color color;
     bool isCollision();
@@ -27,7 +27,9 @@ public:
     sf::Vector2f getPosition();
     void setColor(sf::Color arg);
     void enableDrawing();
-    bool collided();
+    void disableDrawing();
+    bool isDrawing();
+    bool isBlocked();
 };
 
 

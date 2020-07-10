@@ -6,8 +6,10 @@ GameClient::GameClient() {
     colors.push_back(sf::Color::Yellow);
     colors.push_back(sf::Color::Green);
     colors.push_back(sf::Color::Blue);
-    for (int i = 0; i < colors.size(); i++)
+    for (int i = 0; i < colors.size(); i++) {
         lines.emplace_back();
+        positions.emplace_back(sf::Vector2f(-10, -10));
+    }
     listening = true;
     running = false;
 }
@@ -43,11 +45,15 @@ void GameClient::netLoop() {
         else {
             if (id >= 0 and id < colors.size() and running) {
                 float x, y;
-                packet >> x >> y;
+                bool draw;
+                packet >> x >> y >> draw;
                 if (x < 0)
                     lines[id].clear();
-                else
-                    lines[id].push_back(sf::Vector2f(x, y));
+                else {
+                    positions[id] = sf::Vector2f(x, y);
+                    if (draw)
+                        lines[id].push_back(sf::Vector2f(x, y));
+                }
             }
         }
     }
@@ -60,6 +66,8 @@ void GameClient::draw() {
             pointShape.setPosition(position);
             window->draw(pointShape);
         }
+        pointShape.setPosition(positions[i]);
+        window->draw(pointShape);
     }
 }
 

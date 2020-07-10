@@ -10,7 +10,9 @@ GameServer::GameServer() {
 }
 
 void GameServer::listen() {
-    int numberClients = 0, maxClients = 0;
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    int consoleColors[4] = {12, 14, 10, 9};
+    int clientId = 0, maxClients = 0, namesSet = 0;
     bool waiting = true;
     while (maxClients < 2 or maxClients > 4) {
         std::cout << "Number of players [2-4]:" << std::endl;
@@ -26,13 +28,17 @@ void GameServer::listen() {
                 auto *client = new sf::TcpSocket;
                 if (listener.accept(*client) == sf::Socket::Done) {
                     clients.push_back(client);
+                    id[client->getRemotePort()] = clientId;
                     selector.add(*client);
+                    names.emplace_back("");
                     Player player;
-                    player.setColor(colors[numberClients]);
+                    player.setColor(colors[clientId]);
                     players.push_back(player);
-                    std::cout << "New client (" << numberClients << ") - " << client->getRemotePort() << std::endl;
-                    numberClients++;
-                    if (numberClients >= maxClients)
+                    SetConsoleTextAttribute(hConsole, consoleColors[clientId]);
+                    std::cout << "New client (" << clientId << ") - " << client->getRemoteAddress() << std::endl;
+                    SetConsoleTextAttribute(hConsole, 7);
+                    clientId++;
+                    if (clientId >= maxClients)
                         selector.remove(listener);
                 } else
                     delete client;
@@ -42,10 +48,13 @@ void GameServer::listen() {
                     if (selector.isReady(client)) {
                         sf::Packet packet;
                         if (client.receive(packet) == sf::Socket::Done) {
-                            packet >> names[client.getRemotePort()];
+                            packet >> names[id[client.getRemotePort()]];
+                            SetConsoleTextAttribute(hConsole, consoleColors[id[client.getRemotePort()]]);
                             std::cout << "Client " << client.getRemoteAddress()
-                                      << " nickname - " << names[client.getRemotePort()] << std::endl;
-                            if (names.size() >= maxClients)
+                                      << " nickname - " << names[id[client.getRemotePort()]] << std::endl;
+                            SetConsoleTextAttribute(hConsole, 7);
+                            namesSet++;
+                            if (namesSet >= maxClients)
                                 waiting = false;
                         }
                     }
@@ -78,7 +87,11 @@ void GameServer::netLoop() {
 }
 
 void GameServer::run() {
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    int consoleColors[4] = {12, 14, 10, 9};
+
     listen();
+    std::cout << std::endl << "New game" << std::endl;
 
     sf::Packet packet;
     packet << -1;
@@ -88,8 +101,10 @@ void GameServer::run() {
     srand(time(nullptr));
     sf::Clock cl;
     float dt = 0;
-    float startInterval = 5;
+    float startInterval = START_INTERVAL;
+    float roundInterval = ROUND_INTERVAL;
     float refreshInterval = 1.0f / FPS;
+    bool won = false;
 
     sf::Thread thread(&GameServer::netLoop, this);
     thread.launch();
@@ -97,16 +112,15 @@ void GameServer::run() {
     for (int i = 0; i < players.size(); i++) {
         players[i].clear();
         players[i].setEnemies(&players);
-        players[i].enableDrawing();
     }
 
     while (running) {
-//        if (startInterval > 0)
-//            startInterval -= dt;
-//        else {
-//            for (auto player : players)
-//                player.enableDrawing();
-//        }
+        if (startInterval > 0)
+            startInterval -= dt;
+        else {
+            for (int i = 0; i < players.size(); i++)
+                players[i].enableDrawing();
+        }
 
         if (refreshInterval > 0)
             refreshInterval -= dt;
@@ -116,24 +130,45 @@ void GameServer::run() {
             for (int i = 0; i < players.size(); i++) {
                 players[i].move(refreshInterval);
                 packet.clear();
-                packet << i << players[i].getPosition().x << players[i].getPosition().y;
+                packet << i << players[i].getPosition().x << players[i].getPosition().y << players[i].isDrawing();
                 for (auto client : clients)
                     client->send(packet);
-                if (players[i].collided())
+                if (players[i].isBlocked())
                     blocked++;
             }
-            if (blocked == players.size()) {
+            if (blocked >= players.size() - 1) {
+                roundInterval -= refreshInterval;
+                if (!won) {
+                    won = true;
+                    bool draw = true;
+                    for (int i = 0; i < players.size(); i++) {
+                        if (!players[i].isBlocked()) {
+                            draw = false;
+                            SetConsoleTextAttribute(hConsole, consoleColors[i]);
+                            std::cout << "Winner: " << names[i] << std::endl;
+                            SetConsoleTextAttribute(hConsole, 7);
+                            break;
+                        }
+                    }
+                    if (draw)
+                        std::cout << "Draw" << std::endl;
+                }
+            }
+            if (roundInterval < 0) {
                 for (int i = 0; i < players.size(); i++) {
                     packet.clear();
                     packet << -2;
                     for (auto client : clients)
                         client->send(packet);
                     players[i].reset();
+                    players[i].disableDrawing();
                 }
+                won = false;
+                startInterval = START_INTERVAL;
+                roundInterval = ROUND_INTERVAL;
+                std::cout << "New game" << std::endl;
             }
-
         }
-
         dt = cl.restart().asSeconds();
     }
 }

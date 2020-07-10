@@ -10,6 +10,7 @@ private:
     sf::RenderWindow* window;
     std::vector<sf::Color> colors;
     std::vector<std::vector<sf::Vector2f>> lines;
+    std::vector<sf::Vector2f> positions;
     sf::CircleShape pointShape;
     bool listening, running;
     void connect();
