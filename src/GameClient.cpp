@@ -14,6 +14,7 @@ GameClient::GameClient() {
     }
     listening = true;
     running = false;
+    drawWinnerText = false;
 }
 
 void GameClient::connect() {
@@ -48,13 +49,20 @@ void GameClient::netLoop() {
         } else if (id == -2) {
             for (auto &line : lines)
                 line.clear();
+            drawWinnerText = false;
         } else if (id == -3) {
             int winId;
             packet >> winId;
-            if (winId < 0)
+            if (winId < 0) {
                 std::cout << "Draw" << std::endl;
-            else
+                winnerText.setText("Draw");
+            }
+            else {
                 std::cout << "Winner: " << names[winId] << std::endl;
+                winnerText.setText(names[winId]);
+            }
+            winnerText.setColor(winId);
+            drawWinnerText = true;
         }
         else {
             if (id >= 0 and id < colors.size() and running) {
@@ -97,6 +105,7 @@ void GameClient::run() {
     srand(time(nullptr));
     sf::Clock cl;
     float dt = 0;
+    float winnerTextInterval = 0;
 
     sf::ContextSettings settings;
     settings.antialiasingLevel = 4;
@@ -129,6 +138,12 @@ void GameClient::run() {
 
         window->clear(sf::Color(30, 39, 46));
         draw();
+        if (drawWinnerText) {
+            winnerText.animate(winnerTextInterval / WINNERTEXT_INTERVAL);
+            winnerText.draw(window);
+            winnerTextInterval += dt;
+        } else
+            winnerTextInterval = 0;
         window->display();
         dt = cl.restart().asSeconds();
     }

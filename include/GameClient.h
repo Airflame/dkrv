@@ -1,7 +1,9 @@
 #ifndef DKRV_GAMECLIENT_H
 #define DKRV_GAMECLIENT_H
+#define WINNERTEXT_INTERVAL 3
 #include <SFML/Network.hpp>
 #include "Player.h"
+#include "WinnerText.h"
 
 class GameClient {
 private:
@@ -12,7 +14,8 @@ private:
     std::vector<std::vector<sf::Vector2f>> lines;
     std::vector<sf::Vector2f> positions;
     sf::CircleShape pointShape;
-    bool listening, running;
+    WinnerText winnerText;
+    bool listening, running, drawWinnerText;
     void connect();
     void netLoop();
     void draw();
