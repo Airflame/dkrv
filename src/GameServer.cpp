@@ -96,6 +96,8 @@ void GameServer::run() {
 
     sf::Packet packet;
     packet << -1;
+    for (const auto &name : names)
+        packet << name;
     for (auto client : clients)
         client->send(packet);
 
@@ -106,6 +108,7 @@ void GameServer::run() {
     float roundInterval = ROUND_INTERVAL;
     float refreshInterval = 1.0f / FPS;
     bool won = false;
+    int wonId;
 
     sf::Thread thread(&GameServer::netLoop, this);
     thread.launch();
@@ -145,14 +148,21 @@ void GameServer::run() {
                     for (int i = 0; i < players.size(); i++) {
                         if (!players[i].isBlocked()) {
                             draw = false;
+                            wonId = i;
                             SetConsoleTextAttribute(hConsole, consoleColors[i]);
                             std::cout << "Winner: " << names[i] << std::endl;
                             SetConsoleTextAttribute(hConsole, 7);
                             break;
                         }
                     }
-                    if (draw)
+                    if (draw) {
+                        wonId = -1;
                         std::cout << "Draw" << std::endl;
+                    }
+                    packet.clear();
+                    packet << -3 << wonId;
+                    for (auto client : clients)
+                        client->send(packet);
                 }
             }
             if (roundInterval < 0) {

@@ -38,12 +38,25 @@ void GameClient::netLoop() {
         sf::Packet packet;
         server.receive(packet);
         packet >> id;
-        if (id == -1)
+        if (id == -1) {
             running = true;
-        else if (id == -2) {
+            while (!packet.endOfPacket()) {
+                std::string name;
+                packet >> name;
+                names.push_back(name);
+            }
+        } else if (id == -2) {
             for (auto &line : lines)
                 line.clear();
-        } else {
+        } else if (id == -3) {
+            int winId;
+            packet >> winId;
+            if (winId < 0)
+                std::cout << "Draw" << std::endl;
+            else
+                std::cout << "Winner: " << names[winId] << std::endl;
+        }
+        else {
             if (id >= 0 and id < colors.size() and running) {
                 float x, y;
                 bool draw;
