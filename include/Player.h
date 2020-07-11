@@ -28,8 +28,8 @@ public:
     void setColor(sf::Color arg);
     void enableDrawing();
     void disableDrawing();
-    bool isDrawing();
-    bool isBlocked();
+    bool isDrawing() const;
+    bool isBlocked() const;
 };
 
 

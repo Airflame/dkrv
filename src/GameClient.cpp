@@ -41,10 +41,9 @@ void GameClient::netLoop() {
         if (id == -1)
             running = true;
         else if (id == -2) {
-            for (auto & line : lines)
+            for (auto &line : lines)
                 line.clear();
-        }
-        else {
+        } else {
             if (id >= 0 and id < colors.size() and running) {
                 float x, y;
                 bool draw;

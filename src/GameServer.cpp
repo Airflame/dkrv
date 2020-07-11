@@ -110,17 +110,17 @@ void GameServer::run() {
     sf::Thread thread(&GameServer::netLoop, this);
     thread.launch();
 
-    for (int i = 0; i < players.size(); i++) {
-        players[i].clear();
-        players[i].setEnemies(&players);
+    for (auto &player : players) {
+        player.clear();
+        player.setEnemies(&players);
     }
 
     while (running) {
         if (startInterval > 0)
             startInterval -= dt;
         else {
-            for (int i = 0; i < players.size(); i++)
-                players[i].enableDrawing();
+            for (auto &player : players)
+                player.enableDrawing();
         }
 
         if (refreshInterval > 0)
@@ -156,9 +156,9 @@ void GameServer::run() {
                 }
             }
             if (roundInterval < 0) {
-                for (int i = 0; i < players.size(); i++) {
-                    players[i].reset();
-                    players[i].disableDrawing();
+                for (auto &player : players) {
+                    player.reset();
+                    player.disableDrawing();
                 }
                 packet.clear();
                 packet << -2;

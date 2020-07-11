@@ -1,6 +1,5 @@
 #ifndef DKRV_GAMECLIENT_H
 #define DKRV_GAMECLIENT_H
-#include <iostream>
 #include <SFML/Network.hpp>
 #include "Player.h"
 

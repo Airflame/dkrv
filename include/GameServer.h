@@ -3,8 +3,6 @@
 #define START_INTERVAL 3
 #define ROUND_INTERVAL 3
 #define FPS 60
-#include <iostream>
-#include <vector>
 #include <windows.h>
 #include <SFML/Network.hpp>
 #include "Player.h"

@@ -21,7 +21,7 @@ void Player::clear() {
     line.clear();
 }
 
-void Player::setEnemies(std::vector<Player>* arg) {
+void Player::setEnemies(std::vector<Player> *arg) {
     players = arg;
 }
 
@@ -37,15 +37,15 @@ void Player::move(float dt) {
 }
 
 void Player::turnLeft(float dt) {
-    angle -= 3*dt;
+    angle -= 3 * dt;
     if (angle < 0)
-        angle += 2*M_PI;
+        angle += 2 * M_PI;
 }
 
 void Player::turnRight(float dt) {
-    angle += 3*dt;
-    if (angle > 2*M_PI)
-        angle -= 2*M_PI;
+    angle += 3 * dt;
+    if (angle > 2 * M_PI)
+        angle -= 2 * M_PI;
 }
 
 bool Player::isCollision() {
@@ -53,10 +53,11 @@ bool Player::isCollision() {
         return false;
     for (int i = 0; i < line.size() - 10; i++) {
         sf::Vector2f point = line[i];
-        if (std::sqrt((point.x - position.x)*(point.x - position.x)+(point.y - position.y)*(point.y - position.y)) < 10)
+        if (std::sqrt(
+                (point.x - position.x) * (point.x - position.x) + (point.y - position.y) * (point.y - position.y)) < 10)
             return true;
     }
-    for (const auto& enemy : *players) {
+    for (const auto &enemy : *players) {
         for (auto point : enemy.line) {
             if (enemy.color == this->color)
                 continue;
@@ -88,10 +89,10 @@ void Player::disableDrawing() {
     drawing = false;
 }
 
-bool Player::isDrawing() {
+bool Player::isDrawing() const {
     return drawing;
 }
 
-bool Player::isBlocked() {
+bool Player::isBlocked() const {
     return blocked;
 }
