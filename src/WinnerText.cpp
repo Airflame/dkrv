@@ -32,17 +32,24 @@ void WinnerText::setColor(int id) {
 
 void WinnerText::setText(const std::string& name) {
     text.setString(name);
+    sf::Vector2f position = text.getPosition();
+    position.y = background.getPosition().y + (70 - text.getGlobalBounds().height) / 2;
+    text.setPosition(position);
 }
 
 void WinnerText::animate(float percent) {
+    sf::Vector2f position = text.getPosition();
     if (percent < 0.2) {
         backgroundColor.a = percent / 0.2 * 200;
+        text.setPosition(percent / 0.2 * 100, position.y);
     }
     else if (percent > 0.8) {
         backgroundColor.a = (1 - percent) / 0.2 * 200;
+        text.setPosition((percent - 0.2) / 0.8 * 100 + 100, position.y);
     }
     else if (percent >= 0.2 and percent <= 0.8) {
         backgroundColor.a = 200;
+        text.setPosition((percent - 0.2) / 0.8 * 100 + 100, position.y);
     }
     else
         backgroundColor.a = 0;
