@@ -122,8 +122,11 @@ void GameServer::run() {
         if (startInterval > 0)
             startInterval -= dt;
         else {
-            for (auto &player : players)
+            for (auto &player : players) {
+                if (!player.isDrawing())
+                    player.clear();
                 player.enableDrawing();
+            }
         }
 
         if (refreshInterval > 0)
