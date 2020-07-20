@@ -68,18 +68,20 @@ void GameServer::listen() {
 void GameServer::netLoop() {
     while (listening) {
         bool toLeft;
-        float dt;
         if (selector.wait()) {
             for (int i = 0; i < clients.size(); i++) {
                 sf::TcpSocket &client = *clients[i];
                 if (selector.isReady(client)) {
                     sf::Packet packet;
                     if (client.receive(packet) == sf::Socket::Done) {
-                        packet >> toLeft >> dt;
-                        if (toLeft)
-                            players[i].turnLeft(dt);
-                        else
-                            players[i].turnRight(dt);
+                        packet >> toLeft;
+                        if (turn) {
+                            if (toLeft)
+                                players[i].turnLeft(1.0f / FPS);
+                            else
+                                players[i].turnRight(1.0f / FPS);
+                            turn = false;
+                        }
                     }
                 }
             }
@@ -133,6 +135,7 @@ void GameServer::run() {
             refreshInterval -= dt;
         else {
             refreshInterval = 1.0f / FPS;
+            turn = true;
             int blocked = 0;
             for (int i = 0; i < players.size(); i++) {
                 players[i].move(refreshInterval);

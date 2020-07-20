@@ -127,11 +127,11 @@ void GameClient::run() {
         if (window->hasFocus()) {
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
                 packet.clear();
-                packet << true << dt;
+                packet << true;
                 server.send(packet);
             } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
                 packet.clear();
-                packet << false << dt;
+                packet << false;
                 server.send(packet);
             }
         }
