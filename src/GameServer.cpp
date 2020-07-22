@@ -103,7 +103,7 @@ void GameServer::run() {
     float startInterval = START_INTERVAL;
     float roundInterval = ROUND_INTERVAL;
     float refreshInterval = 1.0f / FPS;
-    bool won = false;
+    bool won = false, warmUp = true;
     int wonId;
 
     sf::Thread thread(&GameServer::netLoop, this);
@@ -115,13 +115,16 @@ void GameServer::run() {
     }
 
     while (running) {
-        if (startInterval > 0)
-            startInterval -= dt;
-        else {
-            for (auto &player : players) {
-                if (!player.isDrawing())
+        if (warmUp) {
+            if (startInterval > 0)
+                startInterval -= dt;
+            else {
+                for (auto &player : players) {
                     player.clear();
-                player.enableDrawing();
+                    player.enableDrawing();
+                    player.start();
+                }
+                warmUp = false;
             }
         }
 
@@ -166,6 +169,7 @@ void GameServer::run() {
                 }
                 sendNextRound();
                 won = false;
+                warmUp = true;
                 startInterval = START_INTERVAL;
                 roundInterval = ROUND_INTERVAL;
                 std::cout << "New game" << std::endl;

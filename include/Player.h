@@ -4,22 +4,24 @@
 #include <vector>
 #include <iostream>
 #include <SFML/Graphics.hpp>
+#include "Constants.h"
 
 
 class Player {
 private:
     std::vector<Player>* players;
     sf::Vector2f position;
-    float velocity;
-    float angle;
-    bool drawing, blocked;
+    float velocity, angle, holeTimer;
+    bool started, drawing, drawingHole, blocked;
     std::vector<sf::Vector2f> line;
     sf::Color color;
     bool isCollision();
+    void makeHoles(float dt);
 public:
     Player();
     void reset();
     void clear();
+    void start();
     void setEnemies(std::vector<Player>* arg);
     void move(float dt);
     void turnLeft(float dt);

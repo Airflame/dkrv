@@ -1,8 +1,8 @@
 #include "../include/GameClient.h"
 
 GameClient::GameClient() {
-    pointShape.setRadius(5);
-    pointShape.setOrigin(5, 5);
+    pointShape.setRadius(PLAYER_RADIUS);
+    pointShape.setOrigin(PLAYER_RADIUS, PLAYER_RADIUS);
     colors.emplace_back(214, 48, 49);
     colors.emplace_back(253, 203, 110);
     colors.emplace_back(39, 174, 96);
@@ -103,7 +103,7 @@ void GameClient::run() {
 
     sf::ContextSettings settings;
     settings.antialiasingLevel = 4;
-    window = new sf::RenderWindow(sf::VideoMode(800, 800), "DKRV", sf::Style::Default, settings);
+    window = new sf::RenderWindow(sf::VideoMode(WINDOW_SIZE, WINDOW_SIZE), "DKRV", sf::Style::Default, settings);
     window->setFramerateLimit(60);
     sf::Packet packet;
 
