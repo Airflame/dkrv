@@ -22,11 +22,11 @@ void WinnerText::draw(sf::RenderWindow *window) {
     window->draw(text);
 }
 
-void WinnerText::setColor(int id) {
-    if (id < 0)
+void WinnerText::setColor(int playerId) {
+    if (playerId < 0)
         backgroundColor = sf::Color(127, 140, 141);
     else
-        backgroundColor = colors[id];
+        backgroundColor = colors[playerId];
     background.setFillColor(backgroundColor);
 }
 

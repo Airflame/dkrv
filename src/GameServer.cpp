@@ -29,7 +29,7 @@ void GameServer::listen() {
                 auto *client = new sf::TcpSocket;
                 if (listener.accept(*client) == sf::Socket::Done) {
                     clients.push_back(client);
-                    id[client->getRemotePort()] = clientId;
+                    ids[client->getRemotePort()] = clientId;
                     selector.add(*client);
                     names.emplace_back("");
                     Player player;
@@ -49,10 +49,10 @@ void GameServer::listen() {
                     if (selector.isReady(client)) {
                         sf::Packet packet;
                         if (client.receive(packet) == sf::Socket::Done) {
-                            packet >> names[id[client.getRemotePort()]];
-                            SetConsoleTextAttribute(hConsole, consoleColors[id[client.getRemotePort()]]);
+                            packet >> names[ids[client.getRemotePort()]];
+                            SetConsoleTextAttribute(hConsole, consoleColors[ids[client.getRemotePort()]]);
                             std::cout << "Client " << client.getRemoteAddress()
-                                      << " nickname - " << names[id[client.getRemotePort()]] << std::endl;
+                                      << " nickname - " << names[ids[client.getRemotePort()]] << std::endl;
                             SetConsoleTextAttribute(hConsole, 7);
                             namesSet++;
                             if (namesSet >= maxClients)
@@ -95,13 +95,7 @@ void GameServer::run() {
 
     listen();
     std::cout << std::endl << "New game" << std::endl;
-
-    sf::Packet packet;
-    packet << -1;
-    for (const auto &name : names)
-        packet << name;
-    for (auto client : clients)
-        client->send(packet);
+    sendStartGame();
 
     srand(time(nullptr));
     sf::Clock cl;
@@ -137,13 +131,10 @@ void GameServer::run() {
             refreshInterval = 1.0f / FPS;
             turn = true;
             int blocked = 0;
-            for (int i = 0; i < players.size(); i++) {
-                players[i].move(refreshInterval);
-                packet.clear();
-                packet << i << players[i].getPosition().x << players[i].getPosition().y << players[i].isDrawing();
-                for (auto client : clients)
-                    client->send(packet);
-                if (players[i].isBlocked())
+            for (int id = 0; id < players.size(); id++) {
+                players[id].move(refreshInterval);
+                sendPosition(id);
+                if (players[id].isBlocked())
                     blocked++;
             }
             if (blocked >= players.size() - 1) {
@@ -162,13 +153,10 @@ void GameServer::run() {
                         }
                     }
                     if (draw) {
-                        wonId = -1;
+                        wonId = DRAW;
                         std::cout << "Draw" << std::endl;
                     }
-                    packet.clear();
-                    packet << -3 << wonId;
-                    for (auto client : clients)
-                        client->send(packet);
+                    sendWinner(wonId);
                 }
             }
             if (roundInterval < 0) {
@@ -176,10 +164,7 @@ void GameServer::run() {
                     player.reset();
                     player.disableDrawing();
                 }
-                packet.clear();
-                packet << -2;
-                for (auto client : clients)
-                    client->send(packet);
+                sendNextRound();
                 won = false;
                 startInterval = START_INTERVAL;
                 roundInterval = ROUND_INTERVAL;
@@ -188,5 +173,39 @@ void GameServer::run() {
         }
         dt = cl.restart().asSeconds();
     }
+}
+
+void GameServer::sendPosition(int playerId) {
+    sf::Packet packet;
+    packet.clear();
+    packet << playerId << players[playerId].getPosition().x << players[playerId].getPosition().y
+           << players[playerId].isDrawing();
+    for (auto client : clients)
+        client->send(packet);
+}
+
+void GameServer::sendStartGame() {
+    sf::Packet packet;
+    packet << ID_START_GAME;
+    for (const auto &name : names)
+        packet << name;
+    for (auto client : clients)
+        client->send(packet);
+}
+
+void GameServer::sendWinner(int wonId) {
+    sf::Packet packet;
+    packet.clear();
+    packet << ID_SHOW_WINNER << wonId;
+    for (auto client : clients)
+        client->send(packet);
+}
+
+void GameServer::sendNextRound() {
+    sf::Packet packet;
+    packet.clear();
+    packet << ID_NEXT_ROUND;
+    for (auto client : clients)
+        client->send(packet);
 }
 

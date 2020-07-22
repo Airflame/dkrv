@@ -39,43 +39,37 @@ void GameClient::netLoop() {
         sf::Packet packet;
         server.receive(packet);
         packet >> id;
-        if (id == -1) {
+        if (id == ID_START_GAME) {
             running = true;
             while (!packet.endOfPacket()) {
                 std::string name;
                 packet >> name;
                 names.push_back(name);
             }
-        } else if (id == -2) {
+        } else if (id == ID_NEXT_ROUND) {
             for (auto &line : lines)
                 line.clear();
             drawWinnerText = false;
-        } else if (id == -3) {
-            int winId;
-            packet >> winId;
-            if (winId < 0) {
+        } else if (id == ID_SHOW_WINNER) {
+            int winnerId;
+            packet >> winnerId;
+            if (winnerId == DRAW) {
                 std::cout << "Draw" << std::endl;
                 winnerText.setText("Draw");
+            } else {
+                std::cout << "Winner: " << names[winnerId] << std::endl;
+                winnerText.setText(names[winnerId]);
             }
-            else {
-                std::cout << "Winner: " << names[winId] << std::endl;
-                winnerText.setText(names[winId]);
-            }
-            winnerText.setColor(winId);
+            winnerText.setColor(winnerId);
             drawWinnerText = true;
-        }
-        else {
+        } else {
             if (id >= 0 and id < colors.size() and running) {
                 float x, y;
                 bool draw;
                 packet >> x >> y >> draw;
-                if (x < 0)
-                    lines[id].clear();
-                else {
-                    positions[id] = sf::Vector2f(x, y);
-                    if (draw)
-                        lines[id].push_back(sf::Vector2f(x, y));
-                }
+                positions[id] = sf::Vector2f(x, y);
+                if (draw)
+                    lines[id].push_back(sf::Vector2f(x, y));
             }
         }
     }
@@ -125,13 +119,13 @@ void GameClient::run() {
         }
 
         if (window->hasFocus()) {
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::A) or sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
                 packet.clear();
-                packet << true;
+                packet << TURN_LEFT;
                 server.send(packet);
-            } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
+            } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::D) or sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
                 packet.clear();
-                packet << false;
+                packet << TURN_RIGHT;
                 server.send(packet);
             }
         }

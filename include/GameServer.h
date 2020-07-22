@@ -1,10 +1,8 @@
 #ifndef DKRV_GAMESERVER_H
 #define DKRV_GAMESERVER_H
-#define START_INTERVAL 3
-#define ROUND_INTERVAL 3
-#define FPS 60
 #include <windows.h>
 #include <SFML/Network.hpp>
+#include "Constants.h"
 #include "Player.h"
 
 
@@ -12,13 +10,18 @@ class GameServer {
 private:
     sf::SocketSelector selector;
     std::vector<sf::TcpSocket*> clients;
-    std::map<unsigned short, int> id;
+    std::map<unsigned short, int> ids;
     std::vector<std::string> names;
     std::vector<Player> players;
     std::vector<sf::Color> colors;
     bool listening, running, turn;
     void listen();
     void netLoop();
+    void sendPosition(int playerId);
+    void sendStartGame();
+    void sendWinner(int wonId);
+    void sendNextRound();
+
 public:
     GameServer();
     void run();

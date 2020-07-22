@@ -15,7 +15,7 @@ private:
 public:
     WinnerText();
     void draw(sf::RenderWindow* window);
-    void setColor(int id);
+    void setColor(int playerId);
     void setText(const std::string& name);
     void animate(float percent);
 };

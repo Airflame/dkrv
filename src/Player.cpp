@@ -3,6 +3,7 @@
 #include <cmath>
 
 Player::Player() {
+    srand(time(nullptr));
     velocity = 100;
     color = sf::Color::White;
     drawing = false;

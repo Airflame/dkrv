@@ -2,6 +2,7 @@
 #define DKRV_GAMECLIENT_H
 #define WINNERTEXT_INTERVAL 3
 #include <SFML/Network.hpp>
+#include "Constants.h"
 #include "Player.h"
 #include "WinnerText.h"
 
