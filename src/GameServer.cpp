@@ -35,6 +35,8 @@ void GameServer::listen() {
                     Player player;
                     player.setColor(colors[clientId]);
                     players.push_back(player);
+                    turn.push_back(false);
+                    toLeft.push_back(false);
                     SetConsoleTextAttribute(hConsole, consoleColors[clientId]);
                     std::cout << "New client (" << clientId << ") - " << client->getRemoteAddress() << std::endl;
                     SetConsoleTextAttribute(hConsole, 7);
@@ -67,21 +69,16 @@ void GameServer::listen() {
 
 void GameServer::netLoop() {
     while (listening) {
-        bool toLeft;
-        float dt;
+        bool t, l;
         if (selector.wait()) {
             for (int i = 0; i < clients.size(); i++) {
                 sf::TcpSocket &client = *clients[i];
                 if (selector.isReady(client)) {
                     sf::Packet packet;
                     if (client.receive(packet) == sf::Socket::Done) {
-                        packet >> toLeft >> dt;
-                        if (dt > 1.0 / 30)
-                            dt = 0;
-                        if (toLeft)
-                            players[i].turnLeft(dt);
-                        else
-                            players[i].turnRight(dt);
+                        packet >> t >> l;
+                        turn[i] = t;
+                        toLeft[i] = l;
                     }
                 }
             }
@@ -135,6 +132,12 @@ void GameServer::run() {
             refreshTimer = 0;
             int blocked = 0;
             for (int id = 0; id < players.size(); id++) {
+                if (turn[id]) {
+                    if (toLeft[id])
+                        players[id].turnLeft(refreshInterval);
+                    else
+                        players[id].turnRight(refreshInterval);
+                }
                 players[id].move(refreshInterval);
                 sendPosition(id);
                 if (players[id].isBlocked())

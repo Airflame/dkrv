@@ -111,28 +111,34 @@ void GameClient::run() {
     settings.antialiasingLevel = 4;
     window = new sf::RenderWindow(sf::VideoMode(WINDOW_SIZE, WINDOW_SIZE), "DKRV", sf::Style::Default, settings);
     window->setFramerateLimit(FPS);
+    window->setKeyRepeatEnabled(false);
     sf::Packet packet;
 
     while (window->isOpen()) {
         sf::Event event;
         while (window->pollEvent(event)) {
+            if (event.type == sf::Event::KeyPressed) {
+                if (event.key.code == sf::Keyboard::Left) {
+                    packet.clear();
+                    packet << true << TURN_LEFT;
+                    server.send(packet);
+                } else if (event.key.code == sf::Keyboard::Right) {
+                    packet.clear();
+                    packet << true << TURN_RIGHT;
+                    server.send(packet);
+                }
+            }
+            if (event.type == sf::Event::KeyReleased and
+                    (event.key.code == sf::Keyboard::Left or event.key.code == sf::Keyboard::Right)) {
+                packet.clear();
+                packet << false << false;
+                server.send(packet);
+            }
             if (event.type == sf::Event::Closed) {
                 thread.terminate();
                 window->close();
                 delete window;
                 return;
-            }
-        }
-
-        if (window->hasFocus()) {
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::A) or sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
-                packet.clear();
-                packet << TURN_LEFT << dt;
-                server.send(packet);
-            } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::D) or sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
-                packet.clear();
-                packet << TURN_RIGHT << dt;
-                server.send(packet);
             }
         }
 
