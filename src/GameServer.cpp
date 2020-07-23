@@ -69,16 +69,19 @@ void GameServer::listen() {
 
 void GameServer::netLoop() {
     while (listening) {
-        bool t, l;
+        bool receivedTurn, receivedDirection;
         if (selector.wait()) {
             for (int i = 0; i < clients.size(); i++) {
                 sf::TcpSocket &client = *clients[i];
                 if (selector.isReady(client)) {
                     sf::Packet packet;
                     if (client.receive(packet) == sf::Socket::Done) {
-                        packet >> t >> l;
-                        turn[i] = t;
-                        toLeft[i] = l;
+                        packet >> receivedTurn;
+                        turn[i] = receivedTurn;
+                        if (turn[i]) {
+                            packet >> receivedDirection;
+                            toLeft[i] = receivedDirection;
+                        }
                     }
                 }
             }

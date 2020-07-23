@@ -131,7 +131,7 @@ void GameClient::run() {
             if (event.type == sf::Event::KeyReleased and
                     (event.key.code == sf::Keyboard::Left or event.key.code == sf::Keyboard::Right)) {
                 packet.clear();
-                packet << false << false;
+                packet << false;
                 server.send(packet);
             }
             if (event.type == sf::Event::Closed) {
