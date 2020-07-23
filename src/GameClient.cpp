@@ -106,6 +106,7 @@ void GameClient::run() {
     sf::Clock cl;
     float dt = 0;
     float winnerTextTimer = 0;
+    bool turnsLeft = false, turnsRight = false;
 
     sf::ContextSettings settings;
     settings.antialiasingLevel = 4;
@@ -117,28 +118,37 @@ void GameClient::run() {
     while (window->isOpen()) {
         sf::Event event;
         while (window->pollEvent(event)) {
-            if (event.type == sf::Event::KeyPressed) {
-                if (event.key.code == sf::Keyboard::Left) {
-                    packet.clear();
-                    packet << true << TURN_LEFT;
-                    server.send(packet);
-                } else if (event.key.code == sf::Keyboard::Right) {
-                    packet.clear();
-                    packet << true << TURN_RIGHT;
-                    server.send(packet);
-                }
-            }
             if (event.type == sf::Event::KeyReleased and
-                    (event.key.code == sf::Keyboard::Left or event.key.code == sf::Keyboard::Right)) {
+                (event.key.code == sf::Keyboard::Left or event.key.code == sf::Keyboard::Right or
+                 event.key.code == sf::Keyboard::A or event.key.code == sf::Keyboard::D) or
+                event.type == sf::Event::LostFocus) {
                 packet.clear();
                 packet << false;
                 server.send(packet);
+                turnsLeft = turnsRight = false;
             }
             if (event.type == sf::Event::Closed) {
                 thread.terminate();
                 window->close();
                 delete window;
                 return;
+            }
+        }
+
+        if (window->hasFocus()) {
+            if ((sf::Keyboard::isKeyPressed(sf::Keyboard::Left) or sf::Keyboard::isKeyPressed(sf::Keyboard::A)) and
+                !turnsLeft) {
+                packet.clear();
+                packet << true << TURN_LEFT;
+                server.send(packet);
+                turnsLeft = true;
+            }
+            if ((sf::Keyboard::isKeyPressed(sf::Keyboard::Right) or sf::Keyboard::isKeyPressed(sf::Keyboard::D)) and
+                !turnsRight) {
+                packet.clear();
+                packet << true << TURN_RIGHT;
+                server.send(packet);
+                turnsRight = true;
             }
         }
 

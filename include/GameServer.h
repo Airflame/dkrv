@@ -15,7 +15,7 @@ private:
     std::vector<std::string> names;
     std::vector<Player> players;
     std::vector<sf::Color> colors;
-    std::vector<bool> turn, toLeft;
+    std::vector<bool> turns, toLeft;
     bool listening, running;
     void listen();
     void netLoop();

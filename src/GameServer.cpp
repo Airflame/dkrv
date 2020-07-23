@@ -35,7 +35,7 @@ void GameServer::listen() {
                     Player player;
                     player.setColor(colors[clientId]);
                     players.push_back(player);
-                    turn.push_back(false);
+                    turns.push_back(false);
                     toLeft.push_back(false);
                     SetConsoleTextAttribute(hConsole, consoleColors[clientId]);
                     std::cout << "New client (" << clientId << ") - " << client->getRemoteAddress() << std::endl;
@@ -77,8 +77,8 @@ void GameServer::netLoop() {
                     sf::Packet packet;
                     if (client.receive(packet) == sf::Socket::Done) {
                         packet >> receivedTurn;
-                        turn[i] = receivedTurn;
-                        if (turn[i]) {
+                        turns[i] = receivedTurn;
+                        if (turns[i]) {
                             packet >> receivedDirection;
                             toLeft[i] = receivedDirection;
                         }
@@ -135,7 +135,7 @@ void GameServer::run() {
             refreshTimer = 0;
             int blocked = 0;
             for (int id = 0; id < players.size(); id++) {
-                if (turn[id]) {
+                if (turns[id]) {
                     if (toLeft[id])
                         players[id].turnLeft(refreshInterval);
                     else
@@ -178,6 +178,8 @@ void GameServer::run() {
                 warmUp = true;
                 startTimer = 0;
                 roundTimer = 0;
+                for (auto && turn : turns)
+                    turn = false;
                 std::cout << "New game" << std::endl;
             }
         }
