@@ -5,6 +5,7 @@
 #define PLAYER_VELOCITY 100
 #define START_INTERVAL 3
 #define ROUND_INTERVAL 3
+#define TPS 60
 #define FPS 60
 #define ID_START_GAME -1
 #define ID_SHOW_WINNER -2

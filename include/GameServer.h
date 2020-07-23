@@ -9,12 +9,13 @@
 class GameServer {
 private:
     sf::SocketSelector selector;
+    sf::Packet sendPacket;
     std::vector<sf::TcpSocket*> clients;
     std::map<unsigned short, int> ids;
     std::vector<std::string> names;
     std::vector<Player> players;
     std::vector<sf::Color> colors;
-    bool listening, running, turn;
+    bool listening, running;
     void listen();
     void netLoop();
     void sendPosition(int playerId);

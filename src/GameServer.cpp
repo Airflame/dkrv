@@ -68,20 +68,20 @@ void GameServer::listen() {
 void GameServer::netLoop() {
     while (listening) {
         bool toLeft;
+        float dt;
         if (selector.wait()) {
             for (int i = 0; i < clients.size(); i++) {
                 sf::TcpSocket &client = *clients[i];
                 if (selector.isReady(client)) {
                     sf::Packet packet;
                     if (client.receive(packet) == sf::Socket::Done) {
-                        packet >> toLeft;
-                        if (turn) {
-                            if (toLeft)
-                                players[i].turnLeft(1.0f / FPS);
-                            else
-                                players[i].turnRight(1.0f / FPS);
-                            turn = false;
-                        }
+                        packet >> toLeft >> dt;
+                        if (dt > 1.0 / 30)
+                            dt = 0;
+                        if (toLeft)
+                            players[i].turnLeft(dt);
+                        else
+                            players[i].turnRight(dt);
                     }
                 }
             }
@@ -100,9 +100,10 @@ void GameServer::run() {
     srand(time(nullptr));
     sf::Clock cl;
     float dt = 0;
-    float startInterval = START_INTERVAL;
-    float roundInterval = ROUND_INTERVAL;
-    float refreshInterval = 1.0f / FPS;
+    float startTimer = 0;
+    float roundTimer = 0;
+    const float refreshInterval = 1.0f / TPS;
+    float refreshTimer = 0;
     bool won = false, warmUp = true;
     int wonId;
 
@@ -116,8 +117,8 @@ void GameServer::run() {
 
     while (running) {
         if (warmUp) {
-            if (startInterval > 0)
-                startInterval -= dt;
+            if (startTimer < START_INTERVAL)
+                startTimer += dt;
             else {
                 for (auto &player : players) {
                     player.clear();
@@ -128,11 +129,10 @@ void GameServer::run() {
             }
         }
 
-        if (refreshInterval > 0)
-            refreshInterval -= dt;
+        if (refreshTimer < refreshInterval)
+            refreshTimer += dt;
         else {
-            refreshInterval = 1.0f / FPS;
-            turn = true;
+            refreshTimer = 0;
             int blocked = 0;
             for (int id = 0; id < players.size(); id++) {
                 players[id].move(refreshInterval);
@@ -141,7 +141,7 @@ void GameServer::run() {
                     blocked++;
             }
             if (blocked >= players.size() - 1) {
-                roundInterval -= refreshInterval;
+                roundTimer += refreshInterval;
                 if (!won) {
                     won = true;
                     bool draw = true;
@@ -162,7 +162,7 @@ void GameServer::run() {
                     sendWinner(wonId);
                 }
             }
-            if (roundInterval < 0) {
+            if (roundTimer > ROUND_INTERVAL) {
                 for (auto &player : players) {
                     player.reset();
                     player.disableDrawing();
@@ -170,8 +170,8 @@ void GameServer::run() {
                 sendNextRound();
                 won = false;
                 warmUp = true;
-                startInterval = START_INTERVAL;
-                roundInterval = ROUND_INTERVAL;
+                startTimer = 0;
+                roundTimer = 0;
                 std::cout << "New game" << std::endl;
             }
         }
@@ -180,36 +180,32 @@ void GameServer::run() {
 }
 
 void GameServer::sendPosition(int playerId) {
-    sf::Packet packet;
-    packet.clear();
-    packet << playerId << players[playerId].getPosition().x << players[playerId].getPosition().y
-           << players[playerId].isDrawing();
+    sendPacket.clear();
+    sendPacket << playerId << players[playerId].getPosition().x << players[playerId].getPosition().y
+               << players[playerId].isDrawing();
     for (auto client : clients)
-        client->send(packet);
+        client->send(sendPacket);
 }
 
 void GameServer::sendStartGame() {
-    sf::Packet packet;
-    packet << ID_START_GAME;
+    sendPacket << ID_START_GAME;
     for (const auto &name : names)
-        packet << name;
+        sendPacket << name;
     for (auto client : clients)
-        client->send(packet);
+        client->send(sendPacket);
 }
 
 void GameServer::sendWinner(int wonId) {
-    sf::Packet packet;
-    packet.clear();
-    packet << ID_SHOW_WINNER << wonId;
+    sendPacket.clear();
+    sendPacket << ID_SHOW_WINNER << wonId;
     for (auto client : clients)
-        client->send(packet);
+        client->send(sendPacket);
 }
 
 void GameServer::sendNextRound() {
-    sf::Packet packet;
-    packet.clear();
-    packet << ID_NEXT_ROUND;
+    sendPacket.clear();
+    sendPacket << ID_NEXT_ROUND;
     for (auto client : clients)
-        client->send(packet);
+        client->send(sendPacket);
 }
 

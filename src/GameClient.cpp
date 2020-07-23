@@ -18,12 +18,18 @@ GameClient::GameClient() {
 }
 
 void GameClient::connect() {
-    std::cout << "Enter IP address:" << std::endl;
-    std::string strIp;
-    std::cin >> strIp;
-    sf::IpAddress ip(strIp);
-    server.connect(ip, 7777);
-    std::cout << "Connection established" << std::endl;
+    bool connected = false;
+    while (!connected) {
+        std::cout << "Enter IP address:" << std::endl;
+        std::string strIp;
+        std::cin >> strIp;
+        sf::IpAddress ip(strIp);
+        if (server.connect(ip, 7777, sf::seconds(5)) == sf::Socket::Done) {
+            std::cout << "Connection established" << std::endl;
+            connected = true;
+        } else
+            std::cout << "Connection failed" << std::endl << std::endl;
+    }
 
     std::string name;
     std::cout << std::endl << "Enter name:" << std::endl;
@@ -34,9 +40,9 @@ void GameClient::connect() {
 }
 
 void GameClient::netLoop() {
+    int id;
+    sf::Packet packet;
     while (listening) {
-        int id;
-        sf::Packet packet;
         server.receive(packet);
         packet >> id;
         if (id == ID_START_GAME) {
@@ -99,12 +105,12 @@ void GameClient::run() {
     srand(time(nullptr));
     sf::Clock cl;
     float dt = 0;
-    float winnerTextInterval = 0;
+    float winnerTextTimer = 0;
 
     sf::ContextSettings settings;
     settings.antialiasingLevel = 4;
     window = new sf::RenderWindow(sf::VideoMode(WINDOW_SIZE, WINDOW_SIZE), "DKRV", sf::Style::Default, settings);
-    window->setFramerateLimit(60);
+    window->setFramerateLimit(FPS);
     sf::Packet packet;
 
     while (window->isOpen()) {
@@ -121,11 +127,11 @@ void GameClient::run() {
         if (window->hasFocus()) {
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::A) or sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
                 packet.clear();
-                packet << TURN_LEFT;
+                packet << TURN_LEFT << dt;
                 server.send(packet);
             } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::D) or sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
                 packet.clear();
-                packet << TURN_RIGHT;
+                packet << TURN_RIGHT << dt;
                 server.send(packet);
             }
         }
@@ -133,11 +139,11 @@ void GameClient::run() {
         window->clear(sf::Color(30, 39, 46));
         draw();
         if (drawWinnerText) {
-            winnerText.animate(winnerTextInterval / WINNERTEXT_INTERVAL);
+            winnerText.animate(winnerTextTimer / WINNERTEXT_INTERVAL);
             winnerText.draw(window);
-            winnerTextInterval += dt;
+            winnerTextTimer += dt;
         } else
-            winnerTextInterval = 0;
+            winnerTextTimer = 0;
         window->display();
         dt = cl.restart().asSeconds();
     }
