@@ -99,13 +99,10 @@ void GameServer::run() {
 
     srand(time(nullptr));
     sf::Clock cl;
-    float dt = 0;
-    float startTimer = 0;
-    float roundTimer = 0;
+    float dt = 0, startTimer = 0, roundTimer = 0, refreshTimer = 0;
     const float refreshInterval = 1.0f / TPS;
-    float refreshTimer = 0;
     bool won = false, warmUp = true;
-    int wonId;
+    int blocked = 0, wonId;
 
     sf::Thread thread(&GameServer::netLoop, this);
     thread.launch();
@@ -133,8 +130,8 @@ void GameServer::run() {
             refreshTimer += dt;
         else {
             refreshTimer = 0;
-            int blocked = 0;
             for (int id = 0; id < players.size(); id++) {
+                bool enteredBlocked = players[id].isBlocked();
                 if (turns[id]) {
                     if (toLeft[id])
                         players[id].turnLeft(refreshInterval);
@@ -143,8 +140,9 @@ void GameServer::run() {
                 }
                 players[id].move(refreshInterval);
                 sendPosition(id);
-                if (players[id].isBlocked())
+                if (players[id].isBlocked() != enteredBlocked) {
                     blocked++;
+                }
             }
             if (blocked >= players.size() - 1) {
                 roundTimer += refreshInterval;
@@ -176,8 +174,8 @@ void GameServer::run() {
                 sendNextRound();
                 won = false;
                 warmUp = true;
-                startTimer = 0;
-                roundTimer = 0;
+                blocked = 0;
+                startTimer = roundTimer = 0;
                 for (auto && turn : turns)
                     turn = false;
                 std::cout << "New game" << std::endl;
@@ -196,6 +194,7 @@ void GameServer::sendPosition(int playerId) {
 }
 
 void GameServer::sendStartGame() {
+    sendPacket.clear();
     sendPacket << ID_START_GAME;
     for (const auto &name : names)
         sendPacket << name;
