@@ -6,8 +6,8 @@ WinnerText::WinnerText() {
     colors.emplace_back(39, 174, 96);
     colors.emplace_back(9, 132, 227);
     colors.emplace_back(232, 67, 147);
-    background.setSize(sf::Vector2f(800, 100));
-    background.setPosition(0, 200);
+    background.setSize(sf::Vector2f(WINDOW_SIZE, 100));
+    background.setPosition(0, WINDOW_SIZE * 0.25);
     text.setCharacterSize(80);
     text.setPosition(100, 210);
     if(!font.loadFromFile("Roboto-Regular.ttf"))

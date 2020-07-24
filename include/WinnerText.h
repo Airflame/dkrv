@@ -2,6 +2,7 @@
 #define DKRV_WINNERTEXT_H
 #include <iostream>
 #include <SFML/Graphics.hpp>
+#include "Constants.h"
 
 
 class WinnerText {
