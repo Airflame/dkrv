@@ -35,8 +35,8 @@ void GameServer::listen() {
                     Player player;
                     player.setColor(colors[clientId]);
                     players.push_back(player);
-                    turns.push_back(false);
-                    toLeft.push_back(false);
+                    playerTurns.push_back(false);
+                    playerTurnsLeft.push_back(false);
                     SetConsoleTextAttribute(hConsole, consoleColors[clientId]);
                     std::cout << "New client (" << clientId << ") - " << client->getRemoteAddress() << std::endl;
                     SetConsoleTextAttribute(hConsole, 7);
@@ -77,10 +77,10 @@ void GameServer::netLoop() {
                     sf::Packet packet;
                     if (client.receive(packet) == sf::Socket::Done) {
                         packet >> receivedTurn;
-                        turns[i] = receivedTurn;
-                        if (turns[i]) {
+                        playerTurns[i] = receivedTurn;
+                        if (playerTurns[i]) {
                             packet >> receivedDirection;
-                            toLeft[i] = receivedDirection;
+                            playerTurnsLeft[i] = receivedDirection;
                         }
                     }
                 }
@@ -122,6 +122,8 @@ void GameServer::run() {
                     player.enableDrawing();
                     player.start();
                 }
+                effects.push_back(new EffectFast(400, 400, true, players));
+                sendNewEffect(EFFECT_SPEED_SELF, 400, 400);
                 warmUp = false;
             }
         }
@@ -132,13 +134,18 @@ void GameServer::run() {
             refreshTimer = 0;
             for (int id = 0; id < players.size(); id++) {
                 bool enteredBlocked = players[id].isBlocked();
-                if (turns[id]) {
-                    if (toLeft[id])
+                if (playerTurns[id]) {
+                    if (playerTurnsLeft[id])
                         players[id].turnLeft(refreshInterval);
                     else
                         players[id].turnRight(refreshInterval);
                 }
                 players[id].move(refreshInterval);
+                for (int effectId = 0; effectId < effects.size(); effectId++) {
+                    effects[effectId]->evaluate(refreshInterval);
+                    if (effects[effectId]->isCollected())
+                        sendEffectCollected(effectId);
+                }
                 sendPosition(id);
                 if (players[id].isBlocked() != enteredBlocked) {
                     blocked++;
@@ -176,8 +183,9 @@ void GameServer::run() {
                 warmUp = true;
                 blocked = 0;
                 startTimer = roundTimer = 0;
-                for (auto && turn : turns)
+                for (auto && turn : playerTurns)
                     turn = false;
+                effects.clear();
                 std::cout << "New game" << std::endl;
             }
         }
@@ -212,6 +220,20 @@ void GameServer::sendWinner(int wonId) {
 void GameServer::sendNextRound() {
     sendPacket.clear();
     sendPacket << ID_NEXT_ROUND;
+    for (auto client : clients)
+        client->send(sendPacket);
+}
+
+void GameServer::sendNewEffect(int effectType, float x, float y) {
+    sendPacket.clear();
+    sendPacket << ID_NEW_EFFECT << effectType << x << y;
+    for (auto client : clients)
+        client->send(sendPacket);
+}
+
+void GameServer::sendEffectCollected(int effectId) {
+    sendPacket.clear();
+    sendPacket << ID_EFFECT_COLLECTED << effectId;
     for (auto client : clients)
         client->send(sendPacket);
 }

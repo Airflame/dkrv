@@ -5,6 +5,7 @@
 #include "Constants.h"
 #include "Player.h"
 #include "WinnerText.h"
+#include "EffectFast.h"
 
 class GameClient {
 private:
@@ -14,6 +15,7 @@ private:
     std::vector<sf::Color> colors;
     std::vector<std::vector<sf::Vector2f>> lines;
     std::vector<sf::Vector2f> positions;
+    std::vector<Effect*> effects;
     sf::CircleShape pointShape;
     WinnerText winnerText;
     bool listening, running, drawWinnerText;

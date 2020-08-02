@@ -56,6 +56,7 @@ void GameClient::netLoop() {
             for (auto &line : lines)
                 line.clear();
             drawWinnerText = false;
+            effects.clear();
         } else if (id == ID_SHOW_WINNER) {
             int winnerId;
             packet >> winnerId;
@@ -68,6 +69,27 @@ void GameClient::netLoop() {
             }
             winnerText.setColor(winnerId);
             drawWinnerText = true;
+        } else if (id == ID_NEW_EFFECT) {
+            int effectType;
+            float x, y;
+            std::vector<Player> p;
+            packet >> effectType >> x >> y;
+            switch (effectType) {
+                case EFFECT_SPEED_SELF:
+                    effects.push_back(new EffectFast(x, y, true, p));
+                    break;
+
+                case EFFECT_SPEED_OTHERS:
+                    effects.push_back(new EffectFast(x, y, false, p));
+                    break;
+
+                default:
+                    break;
+            }
+        } else if (id == ID_EFFECT_COLLECTED) {
+            int effectId;
+            packet >> effectId;
+            effects[effectId]->finish();
         } else {
             if (id >= 0 and id < colors.size() and running) {
                 float x, y;
@@ -90,6 +112,9 @@ void GameClient::draw() {
         }
         pointShape.setPosition(positions[i]);
         window->draw(pointShape);
+    }
+    for (auto effect : effects) {
+        effect->draw(window);
     }
 }
 
@@ -131,6 +156,8 @@ void GameClient::run() {
                 thread.terminate();
                 window->close();
                 delete window;
+                for (auto effect : effects)
+                    delete effect;
                 return;
             }
         }

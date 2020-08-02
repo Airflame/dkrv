@@ -10,9 +10,15 @@
 #define ID_START_GAME -1
 #define ID_SHOW_WINNER -2
 #define ID_NEXT_ROUND -3
+#define ID_NEW_EFFECT -4
+#define ID_EFFECT_COLLECTED -5
 #define TURN_LEFT true
 #define TURN_RIGHT false
 #define DRAW -1
 #define HOLE_TIMER 0.3
 #define HOLE_FREQ 180
+#define EFFECT_RADIUS 20
+#define EFFECT_INTERVAL 4
+#define EFFECT_SPEED_SELF 0
+#define EFFECT_SPEED_OTHERS 1
 #endif //DKRV_CONSTANTS_H

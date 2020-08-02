@@ -39,7 +39,8 @@ bool Player::isCollision() {
     for (int i = 0; i < line.size() - 10; i++) {
         sf::Vector2f point = line[i];
         if (std::sqrt(
-                (point.x - position.x) * (point.x - position.x) + (point.y - position.y) * (point.y - position.y)) < 10)
+                (point.x - position.x) * (point.x - position.x) + (point.y - position.y) * (point.y - position.y)) <
+            2 * PLAYER_RADIUS)
             return true;
     }
     for (const auto &enemy : *players) {
@@ -48,7 +49,7 @@ bool Player::isCollision() {
                 continue;
             if (std::sqrt(
                     (point.x - position.x) * (point.x - position.x) + (point.y - position.y) * (point.y - position.y)) <
-                10)
+                2 * PLAYER_RADIUS)
                 return true;
         }
     }
@@ -64,8 +65,8 @@ void Player::move(float dt) {
         blocked = isCollision() and drawing;
     if (!blocked) {
         makeHoles(dt);
-        position.x += velocity * std::cos(angle) * dt;
-        position.y += velocity * std::sin(angle) * dt;
+        position.x += velocity * std::cos(angle) * dt * velocityModifier;
+        position.y += velocity * std::sin(angle) * dt * velocityModifier;
         if (drawing)
             line.emplace_back(position);
     }
@@ -88,13 +89,13 @@ void Player::makeHoles(float dt) {
 void Player::turnLeft(float dt) {
     angle -= 3 * dt;
     if (angle < 0)
-        angle += 2 * M_PI;
+        angle += 2 * M_PI * turningModifier;
 }
 
 void Player::turnRight(float dt) {
     angle += 3 * dt;
     if (angle > 2 * M_PI)
-        angle -= 2 * M_PI;
+        angle -= 2 * M_PI * turningModifier;
 }
 
 sf::Vector2f Player::getPosition() {

@@ -18,6 +18,7 @@ private:
     bool isCollision();
     void makeHoles(float dt);
 public:
+    float velocityModifier = 1, turningModifier = 1;
     Player();
     void reset();
     void clear();

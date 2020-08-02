@@ -4,6 +4,7 @@
 #include <SFML/Network.hpp>
 #include "Constants.h"
 #include "Player.h"
+#include "EffectFast.h"
 
 
 class GameServer {
@@ -15,7 +16,8 @@ private:
     std::vector<std::string> names;
     std::vector<Player> players;
     std::vector<sf::Color> colors;
-    std::vector<bool> turns, toLeft;
+    std::vector<bool> playerTurns, playerTurnsLeft;
+    std::vector<Effect*> effects;
     bool listening, running;
     void listen();
     void netLoop();
@@ -23,6 +25,8 @@ private:
     void sendStartGame();
     void sendWinner(int wonId);
     void sendNextRound();
+    void sendNewEffect(int effectType, float x, float y);
+    void sendEffectCollected(int effectId);
 
 public:
     GameServer();
