@@ -78,11 +78,9 @@ void GameClient::netLoop() {
                 case EFFECT_SPEED_SELF:
                     effects.push_back(new EffectFast(x, y, true, p));
                     break;
-
                 case EFFECT_SPEED_OTHERS:
                     effects.push_back(new EffectFast(x, y, false, p));
                     break;
-
                 default:
                     break;
             }

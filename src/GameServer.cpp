@@ -122,8 +122,6 @@ void GameServer::run() {
                     player.enableDrawing();
                     player.start();
                 }
-                effects.push_back(new EffectFast(400, 400, true, players));
-                sendNewEffect(EFFECT_SPEED_SELF, 400, 400);
                 warmUp = false;
             }
         }
@@ -133,6 +131,23 @@ void GameServer::run() {
         else {
             refreshTimer = 0;
             for (int id = 0; id < players.size(); id++) {
+                if (rand() % EFFECT_FREQ == 0) {
+                    int effectType = rand() % 2;
+                    float x = rand() % WINDOW_SIZE;
+                    float y = rand() % WINDOW_SIZE;
+                    switch (effectType) {
+                        case EFFECT_SPEED_SELF:
+                            effects.push_back(new EffectFast(x, y, true, players));
+                            sendNewEffect(EFFECT_SPEED_SELF, x, y);
+                            break;
+                        case EFFECT_SPEED_OTHERS:
+                            effects.push_back(new EffectFast(x, y, false, players));
+                            sendNewEffect(EFFECT_SPEED_OTHERS, x, y);
+                            break;
+                        default:
+                            break;
+                    }
+                }
                 bool enteredBlocked = players[id].isBlocked();
                 if (playerTurns[id]) {
                     if (playerTurnsLeft[id])
@@ -177,6 +192,7 @@ void GameServer::run() {
                 for (auto &player : players) {
                     player.reset();
                     player.disableDrawing();
+                    player.resetModifiers();
                 }
                 sendNextRound();
                 won = false;

@@ -26,7 +26,6 @@ void Effect::evaluate(float dt) {
         } else {
             for (int playerId = 0; playerId < players.size(); playerId++) {
                 sf::Vector2f playerPosition = players[playerId].getPosition();
-                //std::cout << playerId << " - " << playerPosition.x << ", " << playerPosition.y << std::endl;
                 if (std::sqrt(
                         (position.x - playerPosition.x) * (position.x - playerPosition.x) +
                         (position.y - playerPosition.y) * (position.y - playerPosition.y)) <
@@ -48,7 +47,7 @@ void Effect::addEffects() {
         for (int playerId = 0; playerId < players.size(); playerId++) {
             if (playerId == collectedPlayerId)
                 continue;
-            addEffect(&players[collectedPlayerId]);
+            addEffect(&players[playerId]);
         }
     }
 }

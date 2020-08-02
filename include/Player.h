@@ -31,6 +31,7 @@ public:
     void setColor(sf::Color arg);
     void enableDrawing();
     void disableDrawing();
+    void resetModifiers();
     bool isDrawing() const;
     bool isBlocked() const;
 };

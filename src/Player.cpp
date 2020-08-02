@@ -114,6 +114,10 @@ void Player::disableDrawing() {
     drawing = false;
 }
 
+void Player::resetModifiers() {
+    velocityModifier = turningModifier = 1;
+}
+
 bool Player::isDrawing() const {
     return drawing;
 }
