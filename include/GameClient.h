@@ -12,17 +12,15 @@ class GameClient {
 private:
     sf::TcpSocket server;
     sf::RenderWindow* window;
+    std::vector<sf::Texture> textures;
     std::vector<std::string> names;
     std::vector<sf::Color> colors;
-    std::vector<std::vector<sf::Vector2f>> lines;
-    std::vector<sf::Vector2f> positions;
+    std::vector<Player> players;
     std::vector<Effect*> effects;
-    sf::CircleShape pointShape;
     WinnerText winnerText;
     bool listening, running, drawWinnerText;
     void connect();
     void netLoop();
-    void draw();
 public:
     GameClient();
     void run();

@@ -64,7 +64,7 @@ void Effect::removeEffects() {
         for (int playerId = 0; playerId < players.size(); playerId++) {
             if (playerId == collectedPlayerId)
                 continue;
-            removeEffect(&players[collectedPlayerId]);
+            removeEffect(&players[playerId]);
         }
     }
     finish();
@@ -74,6 +74,10 @@ void Effect::finish() {
     finished = collected = true;
 }
 
-bool Effect::isCollected() {
+bool Effect::isCollected() const {
     return collected;
+}
+
+void Effect::setTexture(const sf::Texture *texture) {
+    textureShape.setTexture(texture);
 }

@@ -1,8 +1,8 @@
 #include "../include/EffectSlow.h"
 
-EffectSlow::EffectSlow(float x, float y, bool self, std::vector<Player> &players) : Effect(x, y, self, players) {
-    texture.loadFromFile("img/slow.png");
-    textureShape.setTexture(&texture);
+EffectSlow::EffectSlow(float x, float y, bool self, std::vector<Player> &players) : Effect(
+        x, y, self, players) {
+
 }
 
 void EffectSlow::addEffect(Player *player) {

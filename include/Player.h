@@ -10,16 +10,18 @@
 class Player {
 private:
     std::vector<Player>* players;
+    std::vector<sf::Vector2f> line;
     sf::Vector2f position;
     float velocity, angle, holeTimer;
     bool started, drawing, drawingHole, blocked;
-    std::vector<sf::Vector2f> line;
     sf::Color color;
+    sf::CircleShape pointShape;
     bool isCollision();
     void makeHoles(float dt);
 public:
     float velocityModifier = 1, turningModifier = 1;
     Player();
+    void draw(sf::RenderWindow* window);
     void reset();
     void clear();
     void start();
@@ -27,6 +29,8 @@ public:
     void move(float dt);
     void turnLeft(float dt);
     void turnRight(float dt);
+    void setPosition(sf::Vector2f arg);
+    void addPosition(sf::Vector2f arg);
     sf::Vector2f getPosition();
     void setColor(sf::Color arg);
     void enableDrawing();

@@ -1,17 +1,15 @@
 #include "../include/GameClient.h"
 
 GameClient::GameClient() {
-    pointShape.setRadius(PLAYER_RADIUS);
-    pointShape.setOrigin(PLAYER_RADIUS, PLAYER_RADIUS);
     colors.emplace_back(214, 48, 49);
     colors.emplace_back(253, 203, 110);
     colors.emplace_back(39, 174, 96);
     colors.emplace_back(9, 132, 227);
     colors.emplace_back(232, 67, 147);
-    for (int i = 0; i < colors.size(); i++) {
-        lines.emplace_back();
-        positions.emplace_back(sf::Vector2f(-10, -10));
-    }
+    for (int i = 0; i < 2; i++)
+        textures.emplace_back();
+    textures[0].loadFromFile("img/fast.png");
+    textures[1].loadFromFile("img/slow.png");
     listening = true;
     running = false;
     drawWinnerText = false;
@@ -30,7 +28,6 @@ void GameClient::connect() {
         } else
             std::cout << "Connection failed" << std::endl << std::endl;
     }
-
     std::string name;
     std::cout << std::endl << "Enter name:" << std::endl;
     std::cin >> name;
@@ -51,10 +48,14 @@ void GameClient::netLoop() {
                 std::string name;
                 packet >> name;
                 names.push_back(name);
+                players.emplace_back();
+            }
+            for (int i = 0; i < players.size(); i++) {
+                players[i].setColor(colors[i]);
             }
         } else if (id == ID_NEXT_ROUND) {
-            for (auto &line : lines)
-                line.clear();
+            for (auto &player : players)
+                player.clear();
             drawWinnerText = false;
             for (auto effect : effects)
                 delete effect;
@@ -74,20 +75,23 @@ void GameClient::netLoop() {
         } else if (id == ID_NEW_EFFECT) {
             int effectType;
             float x, y;
-            std::vector<Player> p;
             packet >> effectType >> x >> y;
             switch (effectType) {
                 case EFFECT_FAST_SELF:
-                    effects.push_back(new EffectFast(x, y, true, p));
+                    effects.push_back(new EffectFast(x, y, true, players));
+                    effects[effects.size() - 1]->setTexture(&textures[0]);
                     break;
                 case EFFECT_FAST_OTHERS:
-                    effects.push_back(new EffectFast(x, y, false, p));
+                    effects.push_back(new EffectFast(x, y, false, players));
+                    effects[effects.size() - 1]->setTexture(&textures[0]);
                     break;
                 case EFFECT_SLOW_SELF:
-                    effects.push_back(new EffectSlow(x, y, true, p));
+                    effects.push_back(new EffectSlow(x, y, true, players));
+                    effects[effects.size() - 1]->setTexture(&textures[1]);
                     break;
                 case EFFECT_SLOW_OTHERS:
-                    effects.push_back(new EffectSlow(x, y, false, p));
+                    effects.push_back(new EffectSlow(x, y, false, players));
+                    effects[effects.size() - 1]->setTexture(&textures[1]);
                     break;
                 default:
                     break;
@@ -97,29 +101,16 @@ void GameClient::netLoop() {
             packet >> effectId;
             effects[effectId]->finish();
         } else {
-            if (id >= 0 and id < colors.size() and running) {
+            if (id >= 0 and id < players.size() and running) {
                 float x, y;
                 bool draw;
                 packet >> x >> y >> draw;
-                positions[id] = sf::Vector2f(x, y);
+                sf::Vector2f receivedPosition(x, y);
+                players[id].setPosition(receivedPosition);
                 if (draw)
-                    lines[id].push_back(sf::Vector2f(x, y));
+                    players[id].addPosition(receivedPosition);
             }
         }
-    }
-}
-
-void GameClient::draw() {
-    for (auto effect : effects)
-        effect->draw(window);
-    for (int i = 0; i < lines.size(); i++) {
-        pointShape.setFillColor(colors[i]);
-        for (auto position : lines[i]) {
-            pointShape.setPosition(position);
-            window->draw(pointShape);
-        }
-        pointShape.setPosition(positions[i]);
-        window->draw(pointShape);
     }
 }
 
@@ -144,6 +135,8 @@ void GameClient::run() {
     window->setFramerateLimit(FPS);
     window->setKeyRepeatEnabled(false);
     sf::Packet packet;
+    for (auto& player : players)
+        player.clear();
 
     while (window->isOpen()) {
         sf::Event event;
@@ -163,6 +156,7 @@ void GameClient::run() {
                 delete window;
                 for (auto effect : effects)
                     delete effect;
+                effects.clear();
                 return;
             }
         }
@@ -185,7 +179,10 @@ void GameClient::run() {
         }
 
         window->clear(sf::Color(30, 39, 46));
-        draw();
+        for (auto effect : effects)
+            effect->draw(window);
+        for (auto player : players)
+            player.draw(window);
         if (drawWinnerText) {
             winnerText.animate(winnerTextTimer / WINNERTEXT_INTERVAL);
             winnerText.draw(window);

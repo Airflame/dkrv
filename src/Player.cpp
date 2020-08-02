@@ -7,7 +7,19 @@ Player::Player() {
     velocity = PLAYER_VELOCITY;
     color = sf::Color::White;
     drawing = false;
+    pointShape.setRadius(PLAYER_RADIUS);
+    pointShape.setOrigin(PLAYER_RADIUS, PLAYER_RADIUS);
     reset();
+}
+
+void Player::draw(sf::RenderWindow* window) {
+    pointShape.setFillColor(color);
+    for (auto point : line) {
+        pointShape.setPosition(point);
+        window->draw(pointShape);
+    }
+    pointShape.setPosition(position);
+    window->draw(pointShape);
 }
 
 void Player::reset() {
@@ -34,9 +46,9 @@ void Player::setEnemies(std::vector<Player> *arg) {
 }
 
 bool Player::isCollision() {
-    if (line.size() < 20)
+    if (line.size() < 25)
         return false;
-    for (int i = 0; i < line.size() - 20; i++) {
+    for (int i = 0; i < line.size() - 25; i++) {
         sf::Vector2f point = line[i];
         if (std::sqrt(
                 (point.x - position.x) * (point.x - position.x) + (point.y - position.y) * (point.y - position.y)) <
@@ -96,6 +108,15 @@ void Player::turnRight(float dt) {
     angle += 3 * dt;
     if (angle > 2 * M_PI)
         angle -= 2 * M_PI * turningModifier;
+}
+
+void Player::setPosition(sf::Vector2f arg) {
+    position = arg;
+}
+
+void Player::addPosition(sf::Vector2f arg) {
+    setPosition(arg);
+    line.emplace_back(arg);
 }
 
 sf::Vector2f Player::getPosition() {

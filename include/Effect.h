@@ -8,7 +8,7 @@
 
 class Effect {
 private:
-    sf::CircleShape shape;
+    sf::CircleShape shape, textureShape;
     sf::Vector2f position;
     std::vector<Player>& players;
     bool selfTargeted, collected = false, finished = false;
@@ -18,16 +18,14 @@ private:
     void removeEffects();
     virtual void addEffect(Player* player) = 0;
     virtual void removeEffect(Player* player) = 0;
-protected:
-    sf::CircleShape textureShape;
-    sf::Texture texture;
 public:
     Effect(float x, float y, bool self, std::vector<Player> &players);
     virtual ~Effect() = default;
+    void setTexture(const sf::Texture* texture);
     void draw(sf::RenderWindow* window);
     void evaluate(float dt);
     void finish();
-    bool isCollected();
+    bool isCollected() const;
 };
 
 
