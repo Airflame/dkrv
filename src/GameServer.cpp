@@ -146,14 +146,14 @@ void GameServer::run() {
                             effects.push_back(new EffectFast(x, y, false, players));
                             sendNewEffect(EFFECT_FAST_OTHERS, x, y);
                             break;
-//                        case EFFECT_SLOW_SELF:
-//                            effects.push_back(new EffectSlow(x, y, true, players));
-//                            sendNewEffect(EFFECT_SLOW_SELF, x, y);
-//                            break;
-//                        case EFFECT_SLOW_OTHERS:
-//                            effects.push_back(new EffectSlow(x, y, false, players));
-//                            sendNewEffect(EFFECT_SLOW_OTHERS, x, y);
-//                            break;
+                        case EFFECT_SLOW_SELF:
+                            effects.push_back(new EffectSlow(x, y, true, players));
+                            sendNewEffect(EFFECT_SLOW_SELF, x, y);
+                            break;
+                        case EFFECT_SLOW_OTHERS:
+                            effects.push_back(new EffectSlow(x, y, false, players));
+                            sendNewEffect(EFFECT_SLOW_OTHERS, x, y);
+                            break;
                         default:
                             break;
                     }

@@ -34,9 +34,9 @@ void Player::setEnemies(std::vector<Player> *arg) {
 }
 
 bool Player::isCollision() {
-    if (line.size() < 10)
+    if (line.size() < 20)
         return false;
-    for (int i = 0; i < line.size() - 10; i++) {
+    for (int i = 0; i < line.size() - 20; i++) {
         sf::Vector2f point = line[i];
         if (std::sqrt(
                 (point.x - position.x) * (point.x - position.x) + (point.y - position.y) * (point.y - position.y)) <
@@ -83,7 +83,7 @@ void Player::makeHoles(float dt) {
         drawingHole = false;
     }
     if (started and holeTimer > 0)
-        holeTimer -= dt;
+        holeTimer -= dt * velocityModifier;
 }
 
 void Player::turnLeft(float dt) {
