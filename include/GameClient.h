@@ -6,6 +6,7 @@
 #include "Player.h"
 #include "WinnerText.h"
 #include "EffectFast.h"
+#include "EffectSlow.h"
 
 class GameClient {
 private:

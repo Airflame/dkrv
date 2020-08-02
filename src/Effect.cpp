@@ -5,6 +5,9 @@ Effect::Effect(float x, float y, bool self, std::vector<Player> &players) : play
     shape.setRadius(EFFECT_RADIUS);
     shape.setOrigin(EFFECT_RADIUS, EFFECT_RADIUS);
     shape.setPosition(position);
+    textureShape.setRadius(EFFECT_RADIUS);
+    textureShape.setOrigin(EFFECT_RADIUS, EFFECT_RADIUS);
+    textureShape.setPosition(position);
     selfTargeted = self;
     if (selfTargeted)
         shape.setFillColor(sf::Color::Green);
@@ -13,8 +16,10 @@ Effect::Effect(float x, float y, bool self, std::vector<Player> &players) : play
 }
 
 void Effect::draw(sf::RenderWindow* window) {
-    if (!collected)
+    if (!collected) {
         window->draw(shape);
+        window->draw(textureShape);
+    }
 }
 
 void Effect::evaluate(float dt) {

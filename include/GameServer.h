@@ -5,6 +5,7 @@
 #include "Constants.h"
 #include "Player.h"
 #include "EffectFast.h"
+#include "EffectSlow.h"
 
 
 class GameServer {

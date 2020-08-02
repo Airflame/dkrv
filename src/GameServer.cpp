@@ -130,20 +130,30 @@ void GameServer::run() {
             refreshTimer += dt;
         else {
             refreshTimer = 0;
+            for (auto effect : effects)
+                effect->evaluate(refreshInterval);
             for (int id = 0; id < players.size(); id++) {
                 if (rand() % EFFECT_FREQ == 0) {
-                    int effectType = rand() % 2;
+                    int effectType = rand() % 4;
                     float x = rand() % WINDOW_SIZE;
                     float y = rand() % WINDOW_SIZE;
                     switch (effectType) {
-                        case EFFECT_SPEED_SELF:
+                        case EFFECT_FAST_SELF:
                             effects.push_back(new EffectFast(x, y, true, players));
-                            sendNewEffect(EFFECT_SPEED_SELF, x, y);
+                            sendNewEffect(EFFECT_FAST_SELF, x, y);
                             break;
-                        case EFFECT_SPEED_OTHERS:
+                        case EFFECT_FAST_OTHERS:
                             effects.push_back(new EffectFast(x, y, false, players));
-                            sendNewEffect(EFFECT_SPEED_OTHERS, x, y);
+                            sendNewEffect(EFFECT_FAST_OTHERS, x, y);
                             break;
+//                        case EFFECT_SLOW_SELF:
+//                            effects.push_back(new EffectSlow(x, y, true, players));
+//                            sendNewEffect(EFFECT_SLOW_SELF, x, y);
+//                            break;
+//                        case EFFECT_SLOW_OTHERS:
+//                            effects.push_back(new EffectSlow(x, y, false, players));
+//                            sendNewEffect(EFFECT_SLOW_OTHERS, x, y);
+//                            break;
                         default:
                             break;
                     }
@@ -157,7 +167,6 @@ void GameServer::run() {
                 }
                 players[id].move(refreshInterval);
                 for (int effectId = 0; effectId < effects.size(); effectId++) {
-                    effects[effectId]->evaluate(refreshInterval);
                     if (effects[effectId]->isCollected())
                         sendEffectCollected(effectId);
                 }
@@ -201,6 +210,8 @@ void GameServer::run() {
                 startTimer = roundTimer = 0;
                 for (auto && turn : playerTurns)
                     turn = false;
+                for (auto effect : effects)
+                    delete effect;
                 effects.clear();
                 std::cout << "New game" << std::endl;
             }

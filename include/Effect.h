@@ -18,7 +18,9 @@ private:
     void removeEffects();
     virtual void addEffect(Player* player) = 0;
     virtual void removeEffect(Player* player) = 0;
-
+protected:
+    sf::CircleShape textureShape;
+    sf::Texture texture;
 public:
     Effect(float x, float y, bool self, std::vector<Player> &players);
     virtual ~Effect() = default;
