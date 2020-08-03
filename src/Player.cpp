@@ -46,9 +46,9 @@ void Player::setEnemies(std::vector<Player> *arg) {
 }
 
 bool Player::isCollision() {
-    if (line.size() < 25)
+    if (line.size() < 25 / velocityModifier)
         return false;
-    for (int i = 0; i < line.size() - 25; i++) {
+    for (int i = 0; i < line.size() - 25 / velocityModifier; i++) {
         sf::Vector2f point = line[i];
         if (std::sqrt(
                 (point.x - position.x) * (point.x - position.x) + (point.y - position.y) * (point.y - position.y)) <

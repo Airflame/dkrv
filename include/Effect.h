@@ -16,8 +16,8 @@ private:
     float timer = 0;
     void addEffects();
     void removeEffects();
-    virtual void addEffect(Player* player) = 0;
-    virtual void removeEffect(Player* player) = 0;
+    virtual void addEffect(Player* player);
+    virtual void removeEffect(Player* player);
 public:
     Effect(float x, float y, bool self, std::vector<Player> &players);
     virtual ~Effect() = default;

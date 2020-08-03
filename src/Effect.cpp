@@ -81,3 +81,11 @@ bool Effect::isCollected() const {
 void Effect::setTexture(const sf::Texture *texture) {
     textureShape.setTexture(texture);
 }
+
+void Effect::addEffect(Player *player) {
+
+}
+
+void Effect::removeEffect(Player *player) {
+
+}
