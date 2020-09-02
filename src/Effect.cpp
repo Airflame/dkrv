@@ -8,11 +8,16 @@ Effect::Effect(float x, float y, bool self, std::vector<Player> &players) : play
     textureShape.setRadius(EFFECT_RADIUS);
     textureShape.setOrigin(EFFECT_RADIUS, EFFECT_RADIUS);
     textureShape.setPosition(position);
+    isInClient = false;
     selfTargeted = self;
     if (selfTargeted)
         shape.setFillColor(sf::Color::Green);
     else
         shape.setFillColor(sf::Color::Red);
+}
+
+void Effect::setTexture(const sf::Texture *texture) {
+    textureShape.setTexture(texture);
 }
 
 void Effect::draw(sf::RenderWindow* window) {
@@ -29,19 +34,27 @@ void Effect::evaluate(float dt) {
             if (timer > EFFECT_INTERVAL)
                 removeEffects();
         } else {
-            for (int playerId = 0; playerId < players.size(); playerId++) {
-                sf::Vector2f playerPosition = players[playerId].getPosition();
-                if (std::sqrt(
-                        (position.x - playerPosition.x) * (position.x - playerPosition.x) +
-                        (position.y - playerPosition.y) * (position.y - playerPosition.y)) <
-                    PLAYER_RADIUS + EFFECT_RADIUS) {
-                    collectedPlayerId = playerId;
-                    collected = true;
-                    addEffects();
-                    break;
+            if (!isInClient) {
+                for (int playerId = 0; playerId < players.size(); playerId++) {
+                    sf::Vector2f playerPosition = players[playerId].getPosition();
+                    if (std::sqrt(
+                            (position.x - playerPosition.x) * (position.x - playerPosition.x) +
+                            (position.y - playerPosition.y) * (position.y - playerPosition.y)) <
+                        PLAYER_RADIUS + EFFECT_RADIUS) {
+                        collect(playerId);
+                        break;
+                    }
                 }
             }
         }
+    }
+}
+
+void Effect::collect(int playerId) {
+    if (!collected) {
+        collectedPlayerId = playerId;
+        collected = true;
+        addEffects();
     }
 }
 
@@ -74,12 +87,16 @@ void Effect::finish() {
     finished = collected = true;
 }
 
+void Effect::setAsClient() {
+    isInClient = true;
+}
+
 bool Effect::isCollected() const {
     return collected;
 }
 
-void Effect::setTexture(const sf::Texture *texture) {
-    textureShape.setTexture(texture);
+int Effect::getCollectedPlayerId() const {
+    return collectedPlayerId;
 }
 
 void Effect::addEffect(Player *player) {

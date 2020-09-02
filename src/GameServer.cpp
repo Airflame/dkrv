@@ -82,6 +82,7 @@ void GameServer::netLoop() {
                             packet >> receivedDirection;
                             playerTurnsLeft[i] = receivedDirection;
                         }
+                        sendTurn(i, receivedTurn, receivedDirection);
                     }
                 }
             }
@@ -99,7 +100,7 @@ void GameServer::run() {
 
     srand(time(nullptr));
     sf::Clock cl;
-    float dt = 0, startTimer = 0, roundTimer = 0, refreshTimer = 0;
+    float dt = 0, startTimer = 0, roundTimer = 0, refreshTimer = 0, synchTimer = 0;
     const float refreshInterval = 1.0f / TPS;
     bool won = false, warmUp = true;
     int blocked = 0, wonId;
@@ -109,8 +110,10 @@ void GameServer::run() {
 
     for (auto &player : players) {
         player.clear();
+        player.setAngle(0);
         player.setEnemies(&players);
     }
+    sendPositions();
 
     while (running) {
         if (warmUp) {
@@ -122,6 +125,8 @@ void GameServer::run() {
                     player.enableDrawing();
                     player.start();
                 }
+                for (int playerId = 0; playerId < players.size(); playerId++)
+                    sendDrawing(playerId, true);
                 warmUp = false;
             }
         }
@@ -130,34 +135,39 @@ void GameServer::run() {
             refreshTimer += dt;
         else {
             refreshTimer = 0;
+            synchTimer += refreshInterval;
+            if (synchTimer > SYNC_INTERVAL) {
+                sendSynchronization();
+                synchTimer = 0;
+            }
             for (auto effect : effects)
                 effect->evaluate(refreshInterval);
-            for (int id = 0; id < players.size(); id++) {
-                if (rand() % EFFECT_FREQ == 0) {
-                    int effectType = rand() % 4;
-                    float x = rand() % WINDOW_SIZE;
-                    float y = rand() % WINDOW_SIZE;
-                    switch (effectType) {
-                        case EFFECT_FAST_SELF:
-                            effects.push_back(new EffectFast(x, y, true, players));
-                            sendNewEffect(EFFECT_FAST_SELF, x, y);
-                            break;
-                        case EFFECT_FAST_OTHERS:
-                            effects.push_back(new EffectFast(x, y, false, players));
-                            sendNewEffect(EFFECT_FAST_OTHERS, x, y);
-                            break;
-                        case EFFECT_SLOW_SELF:
-                            effects.push_back(new EffectSlow(x, y, true, players));
-                            sendNewEffect(EFFECT_SLOW_SELF, x, y);
-                            break;
-                        case EFFECT_SLOW_OTHERS:
-                            effects.push_back(new EffectSlow(x, y, false, players));
-                            sendNewEffect(EFFECT_SLOW_OTHERS, x, y);
-                            break;
-                        default:
-                            break;
-                    }
+            if (rand() % EFFECT_FREQ == 0) {
+                int effectType = rand() % 4;
+                float x = rand() % WINDOW_SIZE;
+                float y = rand() % WINDOW_SIZE;
+                switch (effectType) {
+                    case EFFECT_FAST_SELF:
+                        effects.push_back(new EffectFast(x, y, true, players));
+                        sendNewEffect(EFFECT_FAST_SELF, x, y);
+                        break;
+                    case EFFECT_FAST_OTHERS:
+                        effects.push_back(new EffectFast(x, y, false, players));
+                        sendNewEffect(EFFECT_FAST_OTHERS, x, y);
+                        break;
+                    case EFFECT_SLOW_SELF:
+                        effects.push_back(new EffectSlow(x, y, true, players));
+                        sendNewEffect(EFFECT_SLOW_SELF, x, y);
+                        break;
+                    case EFFECT_SLOW_OTHERS:
+                        effects.push_back(new EffectSlow(x, y, false, players));
+                        sendNewEffect(EFFECT_SLOW_OTHERS, x, y);
+                        break;
+                    default:
+                        break;
                 }
+            }
+            for (int id = 0; id < players.size(); id++) {
                 bool enteredBlocked = players[id].isBlocked();
                 if (playerTurns[id]) {
                     if (playerTurnsLeft[id])
@@ -166,12 +176,17 @@ void GameServer::run() {
                         players[id].turnRight(refreshInterval);
                 }
                 players[id].move(refreshInterval);
+                int drawingAction = players[id].makeHoles(refreshInterval);
+                if (drawingAction == DRAWING_DISABLED)
+                    sendDrawing(id, false);
+                if (drawingAction == DRAWING_ENABLED)
+                    sendDrawing(id, true);
                 for (int effectId = 0; effectId < effects.size(); effectId++) {
                     if (effects[effectId]->isCollected())
-                        sendEffectCollected(effectId);
+                        sendEffectCollected(effectId, effects[effectId]->getCollectedPlayerId());
                 }
-                sendPosition(id);
                 if (players[id].isBlocked() != enteredBlocked) {
+                    sendBlocked(id);
                     blocked++;
                 }
             }
@@ -208,11 +223,12 @@ void GameServer::run() {
                 warmUp = true;
                 blocked = 0;
                 startTimer = roundTimer = 0;
-                for (auto && turn : playerTurns)
+                for (auto &&turn : playerTurns)
                     turn = false;
                 for (auto effect : effects)
                     delete effect;
                 effects.clear();
+                sendPositions();
                 std::cout << "New game" << std::endl;
             }
         }
@@ -220,12 +236,14 @@ void GameServer::run() {
     }
 }
 
-void GameServer::sendPosition(int playerId) {
-    sendPacket.clear();
-    sendPacket << playerId << players[playerId].getPosition().x << players[playerId].getPosition().y
-               << players[playerId].isDrawing();
-    for (auto client : clients)
-        client->send(sendPacket);
+void GameServer::sendPositions() {
+    for (int playerId = 0; playerId < players.size(); playerId++) {
+        sendPacket.clear();
+        sendPacket << playerId << players[playerId].getPosition().x << players[playerId].getPosition().y
+                   << players[playerId].isDrawing();
+        for (auto client : clients)
+            client->send(sendPacket);
+    }
 }
 
 void GameServer::sendStartGame() {
@@ -258,10 +276,41 @@ void GameServer::sendNewEffect(int effectType, float x, float y) {
         client->send(sendPacket);
 }
 
-void GameServer::sendEffectCollected(int effectId) {
+void GameServer::sendEffectCollected(int effectId, int playerId) {
     sendPacket.clear();
-    sendPacket << ID_EFFECT_COLLECTED << effectId;
+    sendPacket << ID_EFFECT_COLLECTED << effectId << playerId;
     for (auto client : clients)
         client->send(sendPacket);
+}
+
+void GameServer::sendTurn(int playerId, bool turn, bool turnLeft) {
+    sendPacket.clear();
+    sendPacket << ID_TURN << playerId << turn << turnLeft;
+    for (auto client : clients)
+        client->send(sendPacket);
+}
+
+void GameServer::sendDrawing(int playerId, bool drawing) {
+    sendPacket.clear();
+    sendPacket << ID_DRAWING << playerId << drawing;
+    for (auto client : clients)
+        client->send(sendPacket);
+}
+
+void GameServer::sendBlocked(int playerId) {
+    sendPacket.clear();
+    sendPacket << ID_BLOCKED << playerId;
+    for (auto client : clients)
+        client->send(sendPacket);
+}
+
+void GameServer::sendSynchronization() {
+    for (int playerId = 0; playerId < players.size(); playerId++) {
+        sendPacket.clear();
+        sendPacket << ID_SYNCHRONIZE << playerId << players[playerId].getPosition().x
+                   << players[playerId].getPosition().y << players[playerId].getAngle();
+        for (auto client : clients)
+            client->send(sendPacket);
+    }
 }
 

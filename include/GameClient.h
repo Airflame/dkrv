@@ -2,6 +2,7 @@
 #define DKRV_GAMECLIENT_H
 #define WINNERTEXT_INTERVAL 3
 #include <SFML/Network.hpp>
+#include <cmath>
 #include "Constants.h"
 #include "Player.h"
 #include "WinnerText.h"
@@ -14,8 +15,9 @@ private:
     sf::RenderWindow* window;
     std::vector<sf::Texture> textures;
     std::vector<std::string> names;
-    std::vector<sf::Color> colors;
     std::vector<Player> players;
+    std::vector<sf::Color> colors;
+    std::vector<bool> playerTurns, playerTurnsLeft;
     std::vector<Effect*> effects;
     WinnerText winnerText;
     bool listening, running, drawWinnerText;

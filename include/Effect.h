@@ -11,7 +11,7 @@ private:
     sf::CircleShape shape, textureShape;
     sf::Vector2f position;
     std::vector<Player>& players;
-    bool selfTargeted, collected = false, finished = false;
+    bool selfTargeted, collected = false, finished = false, isInClient;
     int collectedPlayerId;
     float timer = 0;
     void addEffects();
@@ -24,8 +24,11 @@ public:
     void setTexture(const sf::Texture* texture);
     void draw(sf::RenderWindow* window);
     void evaluate(float dt);
+    void collect(int playerId);
     void finish();
+    void setAsClient();
     bool isCollected() const;
+    int getCollectedPlayerId() const;
 };
 
 

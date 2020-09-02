@@ -10,6 +10,7 @@
 
 class GameServer {
 private:
+    sf::RenderWindow* window;
     sf::SocketSelector selector;
     sf::Packet sendPacket;
     std::vector<sf::TcpSocket*> clients;
@@ -22,12 +23,16 @@ private:
     bool listening, running;
     void listen();
     void netLoop();
-    void sendPosition(int playerId);
+    void sendPositions();
     void sendStartGame();
     void sendWinner(int wonId);
     void sendNextRound();
     void sendNewEffect(int effectType, float x, float y);
-    void sendEffectCollected(int effectId);
+    void sendEffectCollected(int effectId, int playerId);
+    void sendTurn(int playerId, bool turn, bool turnLeft);
+    void sendDrawing(int playerId, bool drawing);
+    void sendBlocked(int playerId);
+    void sendSynchronization();
 
 public:
     GameServer();

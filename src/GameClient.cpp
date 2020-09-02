@@ -49,13 +49,20 @@ void GameClient::netLoop() {
                 packet >> name;
                 names.push_back(name);
                 players.emplace_back();
+                playerTurns.push_back(false);
+                playerTurnsLeft.push_back(false);
             }
             for (int i = 0; i < players.size(); i++) {
                 players[i].setColor(colors[i]);
             }
         } else if (id == ID_NEXT_ROUND) {
-            for (auto &player : players)
+            for (auto &player : players) {
                 player.clear();
+                player.setAngle(0);
+                player.disableDrawing();
+                player.resetModifiers();
+                player.setBlocked(false);
+            }
             drawWinnerText = false;
             for (auto effect : effects)
                 delete effect;
@@ -76,30 +83,70 @@ void GameClient::netLoop() {
             int effectType;
             float x, y;
             packet >> effectType >> x >> y;
+            Effect* effect;
             switch (effectType) {
                 case EFFECT_FAST_SELF:
-                    effects.push_back(new EffectFast(x, y, true, players));
-                    effects[effects.size() - 1]->setTexture(&textures[0]);
+                    effect = new EffectFast(x, y, true, players);
+                    effect->setTexture(&textures[0]);
+                    effect->setAsClient();
                     break;
                 case EFFECT_FAST_OTHERS:
-                    effects.push_back(new EffectFast(x, y, false, players));
-                    effects[effects.size() - 1]->setTexture(&textures[0]);
+                    effect = new EffectFast(x, y, false, players);
+                    effect->setTexture(&textures[0]);
+                    effect->setAsClient();
                     break;
                 case EFFECT_SLOW_SELF:
-                    effects.push_back(new EffectSlow(x, y, true, players));
-                    effects[effects.size() - 1]->setTexture(&textures[1]);
+                    effect = new EffectSlow(x, y, true, players);
+                    effect->setTexture(&textures[1]);
+                    effect->setAsClient();
                     break;
                 case EFFECT_SLOW_OTHERS:
-                    effects.push_back(new EffectSlow(x, y, false, players));
-                    effects[effects.size() - 1]->setTexture(&textures[1]);
+                    effect = new EffectSlow(x, y, false, players);
+                    effect->setTexture(&textures[1]);
+                    effect->setAsClient();
                     break;
                 default:
                     break;
             }
+            effects.push_back(effect);
         } else if (id == ID_EFFECT_COLLECTED) {
-            int effectId;
-            packet >> effectId;
-            effects[effectId]->finish();
+            int effectId, playerId;
+            packet >> effectId >> playerId;
+            effects[effectId]->collect(playerId);
+        } else if (id == ID_TURN) {
+            int playerId;
+            bool receivedTurn, receivedDirection = TURN_LEFT;
+            packet >> playerId >> receivedTurn;
+            playerTurns[playerId] = receivedTurn;
+            if (playerTurns[playerId]) {
+                packet >> receivedDirection;
+                playerTurnsLeft[playerId] = receivedDirection;
+            }
+        } else if (id == ID_DRAWING) {
+            int playerId;
+            bool drawing;
+            packet >> playerId >> drawing;
+            if (drawing)
+                players[playerId].enableDrawing();
+            else
+                players[playerId].disableDrawing();
+        } else if (id == ID_BLOCKED) {
+            int playerId;
+            packet >> playerId;
+            players[playerId].setBlocked(true);
+        } else if (id == ID_SYNCHRONIZE) {
+            int playerId;
+            float newX, newY, angle;
+            packet >> playerId >> newX >> newY >> angle;
+            float currX = players[playerId].getPosition().x;
+            float currY = players[playerId].getPosition().y;
+            float diffX = std::fabs(newX - currX);
+            float diffY = std::fabs(newY - currY);
+            float diffA = std::fabs(angle - players[playerId].getAngle());
+            if (diffX > SYNC_POSITION_DIFF or diffY > SYNC_POSITION_DIFF)
+                players[playerId].setPosition(sf::Vector2f((newX + currX) / 2, (newY + currY) / 2));
+            if (diffA > SYNC_ANGLE_DIFF)
+                players[playerId].setAngle(angle);
         } else {
             if (id >= 0 and id < players.size() and running) {
                 float x, y;
@@ -107,8 +154,6 @@ void GameClient::netLoop() {
                 packet >> x >> y >> draw;
                 sf::Vector2f receivedPosition(x, y);
                 players[id].setPosition(receivedPosition);
-                if (draw)
-                    players[id].addPosition(receivedPosition);
             }
         }
     }
@@ -135,8 +180,10 @@ void GameClient::run() {
     window->setFramerateLimit(FPS);
     window->setKeyRepeatEnabled(false);
     sf::Packet packet;
-    for (auto& player : players)
+    for (auto &player : players) {
+        player.setAsClient();
         player.clear();
+    }
 
     while (window->isOpen()) {
         sf::Event event;
@@ -176,6 +223,18 @@ void GameClient::run() {
                 server.send(packet);
                 turnsRight = true;
             }
+        }
+
+        for (auto effect : effects)
+            effect->evaluate(dt);
+        for (int id = 0; id < players.size(); id++) {
+            if (playerTurns[id]) {
+                if (playerTurnsLeft[id])
+                    players[id].turnLeft(dt);
+                else
+                    players[id].turnRight(dt);
+            }
+            players[id].move(dt);
         }
 
         window->clear(sf::Color(30, 39, 46));
