@@ -34,6 +34,7 @@ void GameClient::connect() {
     sf::Packet packet;
     packet << name;
     server.send(packet);
+    clientName = name;
 }
 
 void GameClient::netLoop() {
@@ -47,10 +48,13 @@ void GameClient::netLoop() {
             while (!packet.endOfPacket()) {
                 std::string name;
                 packet >> name;
+                if (name == clientName)
+                    clientId = names.size();
                 names.push_back(name);
                 players.emplace_back();
                 playerTurns.push_back(false);
                 playerTurnsLeft.push_back(false);
+                timerBars.emplace_back();
             }
             for (int i = 0; i < players.size(); i++) {
                 players[i].setColor(colors[i]);
@@ -67,6 +71,8 @@ void GameClient::netLoop() {
             for (auto effect : effects)
                 delete effect;
             effects.clear();
+            for (auto & timerBar : timerBars)
+                timerBar.clear();
         } else if (id == ID_SHOW_WINNER) {
             int winnerId;
             packet >> winnerId;
@@ -112,6 +118,16 @@ void GameClient::netLoop() {
         } else if (id == ID_EFFECT_COLLECTED) {
             int effectId, playerId;
             packet >> effectId >> playerId;
+            if (!effects[effectId]->isCollected()) {
+                if (effects[effectId]->isSelfTargeted())
+                    timerBars[playerId].push();
+                else {
+                    for (int i = 0; i < players.size(); i++) {
+                        if (i != playerId)
+                            timerBars[i].push();
+                    }
+                }
+            }
             effects[effectId]->collect(playerId);
         } else if (id == ID_TURN) {
             int playerId;
@@ -227,14 +243,16 @@ void GameClient::run() {
 
         for (auto effect : effects)
             effect->evaluate(dt);
-        for (int id = 0; id < players.size(); id++) {
-            if (playerTurns[id]) {
-                if (playerTurnsLeft[id])
-                    players[id].turnLeft(dt);
+        for (int playerId = 0; playerId < players.size(); playerId++) {
+            if (playerTurns[playerId]) {
+                if (playerTurnsLeft[playerId])
+                    players[playerId].turnLeft(dt);
                 else
-                    players[id].turnRight(dt);
+                    players[playerId].turnRight(dt);
             }
-            players[id].move(dt);
+            players[playerId].move(dt);
+            timerBars[playerId].refresh(dt);
+            timerBars[playerId].setPosition(players[playerId].getPosition());
         }
 
         window->clear(sf::Color(30, 39, 46));
@@ -242,6 +260,8 @@ void GameClient::run() {
             effect->draw(window);
         for (auto player : players)
             player.draw(window);
+        for (auto timerBar : timerBars)
+            timerBar.draw(window);
         if (drawWinnerText) {
             winnerText.animate(winnerTextTimer / WINNERTEXT_INTERVAL);
             winnerText.draw(window);

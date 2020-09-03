@@ -8,6 +8,7 @@
 #include "WinnerText.h"
 #include "EffectFast.h"
 #include "EffectSlow.h"
+#include "TimerBars.h"
 
 class GameClient {
 private:
@@ -19,7 +20,10 @@ private:
     std::vector<sf::Color> colors;
     std::vector<bool> playerTurns, playerTurnsLeft;
     std::vector<Effect*> effects;
+    std::vector<TimerBars> timerBars;
     WinnerText winnerText;
+    std::string clientName;
+    int clientId;
     bool listening, running, drawWinnerText;
     void connect();
     void netLoop();

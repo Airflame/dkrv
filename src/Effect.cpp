@@ -31,7 +31,7 @@ void Effect::evaluate(float dt) {
     if (!finished) {
         if (collected) {
             timer += dt;
-            if (timer > EFFECT_INTERVAL)
+            if (timer > EFFECT_TIMER)
                 removeEffects();
         } else {
             if (!isInClient) {
@@ -89,6 +89,10 @@ void Effect::finish() {
 
 void Effect::setAsClient() {
     isInClient = true;
+}
+
+bool Effect::isSelfTargeted() const {
+    return selfTargeted;
 }
 
 bool Effect::isCollected() const {

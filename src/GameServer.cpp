@@ -182,8 +182,10 @@ void GameServer::run() {
                 if (drawingAction == DRAWING_ENABLED)
                     sendDrawing(id, true);
                 for (int effectId = 0; effectId < effects.size(); effectId++) {
-                    if (effects[effectId]->isCollected())
+                    if (effects[effectId]->isCollected() and !effects[effectId]->sent) {
+                        effects[effectId]->sent = true;
                         sendEffectCollected(effectId, effects[effectId]->getCollectedPlayerId());
+                    }
                 }
                 if (players[id].isBlocked() != enteredBlocked) {
                     sendBlocked(id);

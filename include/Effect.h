@@ -19,6 +19,7 @@ private:
     virtual void addEffect(Player* player);
     virtual void removeEffect(Player* player);
 public:
+    bool sent = false;
     Effect(float x, float y, bool self, std::vector<Player> &players);
     virtual ~Effect() = default;
     void setTexture(const sf::Texture* texture);
@@ -27,6 +28,7 @@ public:
     void collect(int playerId);
     void finish();
     void setAsClient();
+    bool isSelfTargeted() const;
     bool isCollected() const;
     int getCollectedPlayerId() const;
 };

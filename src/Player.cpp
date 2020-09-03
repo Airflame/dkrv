@@ -1,7 +1,5 @@
 #include "../include/Player.h"
 
-#include <cmath>
-
 Player::Player() {
     srand(time(nullptr));
     velocity = PLAYER_VELOCITY;
